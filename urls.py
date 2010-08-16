@@ -1,17 +1,13 @@
+# (c) 2010 by Anton Korenyushkin
+
 from django.conf.urls.defaults import *
+from django.contrib import admin
 
-# Uncomment the next two lines to enable the admin:
-# from django.contrib import admin
-# admin.autodiscover()
 
-urlpatterns = patterns('',
-    # Example:
-    # (r'^chatlanian/', include('chatlanian.foo.urls')),
+admin.autodiscover()
 
-    # Uncomment the admin/doc line below and add 'django.contrib.admindocs' 
-    # to INSTALLED_APPS to enable admin documentation:
-    # (r'^admin/doc/', include('django.contrib.admindocs.urls')),
-
-    # Uncomment the next line to enable the admin:
-    # (r'^admin/', include(admin.site.urls)),
+urlpatterns = patterns(
+    '',
+    (r'^admin/doc/', include('django.contrib.admindocs.urls')),
+    (r'^admin/', include(admin.site.urls)),
 )
