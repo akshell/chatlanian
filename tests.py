@@ -60,7 +60,7 @@ class Test(TestCase):
             status=httplib.BAD_REQUEST)
         self.post(
             'signup',
-            {'name': 'alice', 'email': 'alice', 'password': 'xxx'},
+            {'name': 'alice', 'email': 'bad', 'password': 'xxx'},
             status=httplib.BAD_REQUEST)
         self.post(
             'signup',
@@ -69,6 +69,10 @@ class Test(TestCase):
         self.post(
             'login',
             {'name': 'bob', 'password': 'bad'},
+            status=httplib.BAD_REQUEST)
+        self.post(
+            'login',
+            {'name': 'bad', 'password': 'xxx'},
             status=httplib.BAD_REQUEST)
         self.post(
             'login',
