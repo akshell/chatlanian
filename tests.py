@@ -8,6 +8,7 @@ import shutil
 import simplejson as json
 from django.test import TestCase
 from django.test.client import Client, FakePayload
+from django.utils.http import urlencode
 
 from paths import setup_paths
 
@@ -45,11 +46,19 @@ class Test(TestCase):
                 if response['Content-Type'] == 'application/json' else
                 response.content)
 
+    def get(self, path, data=None, status=httplib.OK):
+        if data:
+            path += '?' + urlencode(data, True)
+        return self.request('GET', path, status=status)
+
     def post(self, path, data='', content_type=None, status=httplib.CREATED):
         if not isinstance(data, str):
             data = json.dumps(data)
             content_type = 'application/json'
         return self.request('POST', path, data, content_type, status)
+
+    def put(self, path, data='', content_type=None, status=httplib.OK):
+        return self.request('PUT', path, data, content_type, status)
 
     def test_ajax_middleware(self):
         self.assertEqual(self.client.get('/').status_code, httplib.FORBIDDEN)
@@ -105,3 +114,13 @@ class Test(TestCase):
             'login',
             {'name': 'Ho Shi Min', 'password': 'xxx'},
             status=httplib.OK)
+
+    def test_config(self):
+        self.post(
+            'signup',
+            {'name': 'bob', 'email': 'bob@xxx.com', 'password': 'xxx'})
+        self.assertEqual(self.get('config'), {})
+        self.put('config', '{"x":42}', 'application/json')
+        self.assertEqual(self.get('config'), {'x': 42})
+        self.put('config', 'bad', 'application/json', httplib.BAD_REQUEST)
+        self.put('config', '<x>42</x>', 'text/xml', httplib.BAD_REQUEST)

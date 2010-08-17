@@ -1,5 +1,6 @@
 # (c) 2010 by Anton Korenyushkin
 
+from __future__ import with_statement
 import httplib
 import os
 
@@ -12,7 +13,7 @@ from django.http import HttpResponse
 
 from error import Error
 from utils import check_name
-from paths import get_lock_path, get_dev_path
+from paths import get_lock_path, get_dev_path, get_config_path
 
 
 class AnonymousSignupHandler(AnonymousBaseHandler):
@@ -42,6 +43,8 @@ class AnonymousSignupHandler(AnonymousBaseHandler):
         user.save()
         open(get_lock_path(name), 'w').close()
         os.mkdir(get_dev_path(name))
+        with open(get_config_path(name), 'w') as f:
+            f.write('{}')
         user.backend = 'chatlanian.auth_backend.AuthBackend'
         auth.login(request, user)
         return HttpResponse(status=httplib.CREATED)

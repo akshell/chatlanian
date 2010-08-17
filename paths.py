@@ -36,3 +36,7 @@ def get_lock_path(dev_name):
 
 def get_dev_path(dev_name):
     return DEVS_PATH + dev_name
+
+
+def get_config_path(dev_name):
+    return get_dev_path(dev_name) + '/config'

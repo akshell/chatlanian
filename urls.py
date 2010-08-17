@@ -5,6 +5,7 @@ from django.contrib import admin
 
 from resource import Resource
 from auth_handlers import SignupHandler, LoginHandler, LogoutHandler
+from dev_handlers import ConfigHandler
 
 
 admin.autodiscover()
@@ -16,4 +17,5 @@ urlpatterns = patterns(
     (r'^signup$', Resource(SignupHandler)),
     (r'^login$', Resource(LoginHandler)),
     (r'^logout$', Resource(LogoutHandler)),
+    (r'^config$', Resource(ConfigHandler)),
 )
