@@ -39,6 +39,7 @@ TEMPLATE_LOADERS = (
 )
 
 MIDDLEWARE_CLASSES = (
+    'chatlanian.middleware.AjaxMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -52,4 +53,8 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.admin',
     'chatlanian',
+)
+
+AUTHENTICATION_BACKENDS = (
+    'chatlanian.auth_backend.AuthBackend',
 )
