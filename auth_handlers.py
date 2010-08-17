@@ -1,6 +1,7 @@
 # (c) 2010 by Anton Korenyushkin
 
 import httplib
+import os
 
 from piston.handler import AnonymousBaseHandler, BaseHandler
 from django.contrib.auth.models import User
@@ -11,6 +12,7 @@ from django.http import HttpResponse
 
 from error import Error
 from utils import check_name
+from paths import get_lock_path, get_dev_path
 
 
 class AnonymousSignupHandler(AnonymousBaseHandler):
@@ -38,6 +40,8 @@ class AnonymousSignupHandler(AnonymousBaseHandler):
                 'Please choose another email.')
         user = User.objects.create_user(name, email, request.data['password'])
         user.save()
+        open(get_lock_path(name), 'w').close()
+        os.mkdir(get_dev_path(name))
         user.backend = 'chatlanian.auth_backend.AuthBackend'
         auth.login(request, user)
         return HttpResponse(status=httplib.CREATED)
