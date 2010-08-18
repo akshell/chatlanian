@@ -9,11 +9,11 @@ from settings import DEBUG
 def setup_paths(root_path, create=False):
     global ROOT_PATH, LOCKS_PATH, TMP_PATH, DATA_PATH, DEVS_PATH, DOMAINS_PATH
     ROOT_PATH = root_path
-    LOCKS_PATH = ROOT_PATH + 'locks/'
-    TMP_PATH = ROOT_PATH + 'tmp/'
-    DATA_PATH = ROOT_PATH + 'data/'
-    DEVS_PATH = DATA_PATH + 'devs/'
-    DOMAINS_PATH = DATA_PATH + 'domains/'
+    LOCKS_PATH = ROOT_PATH + '/locks'
+    TMP_PATH = ROOT_PATH + '/tmp'
+    DATA_PATH = ROOT_PATH + '/data'
+    DEVS_PATH = DATA_PATH + '/devs'
+    DOMAINS_PATH = DATA_PATH + '/domains'
     if create:
         for path in (
             ROOT_PATH,
@@ -28,16 +28,16 @@ def setup_paths(root_path, create=False):
 
 
 setup_paths(
-    os.path.abspath(os.path.dirname(__file__)) + '/root/' if DEBUG else '/ak/',
+    os.path.abspath(os.path.dirname(__file__)) + '/root' if DEBUG else '/ak',
     DEBUG)
 
 
 def get_lock_path(dev_name):
-    return LOCKS_PATH + dev_name
+    return LOCKS_PATH + '/' + dev_name
 
 
 def get_dev_path(dev_name):
-    return DEVS_PATH + dev_name
+    return DEVS_PATH + '/' + dev_name
 
 
 def get_config_path(dev_name):
