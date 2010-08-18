@@ -15,7 +15,7 @@ from django.http import HttpResponse
 
 from error import Error
 from utils import check_name
-from paths import get_lock_path, get_dev_path
+from paths import TMP_PATH, get_lock_path, get_dev_path
 
 
 _draft_path = None
@@ -24,7 +24,7 @@ _keygen_process = None
 
 def _prepare_draft():
     global _draft_path, _keygen_process
-    _draft_path = tempfile.mkdtemp()
+    _draft_path = tempfile.mkdtemp(prefix='draft-', dir=TMP_PATH)
     with open(_draft_path + '/config', 'w') as f:
         f.write('{}')
     _keygen_process = subprocess.Popen(

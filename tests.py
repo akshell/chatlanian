@@ -10,7 +10,7 @@ from django.test import TestCase
 from django.test.client import Client, FakePayload
 from django.utils.http import urlencode
 
-from paths import setup_paths
+import paths
 
 
 TEST_ROOT_PATH = '/tmp/chatlanian/'
@@ -18,11 +18,12 @@ TEST_ROOT_PATH = '/tmp/chatlanian/'
 
 class BaseTest(TestCase):
     def setUp(self):
-        setup_paths(TEST_ROOT_PATH, True)
+        paths.setup_paths(TEST_ROOT_PATH, True)
         self.client = Client()
 
     def tearDown(self):
-        shutil.rmtree(TEST_ROOT_PATH)
+        shutil.rmtree(paths.DATA_PATH)
+        shutil.rmtree(paths.LOCKS_PATH)
 
     def request(self, method, path, data='', content_type=None,
                 status=httplib.OK):

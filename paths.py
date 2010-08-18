@@ -7,9 +7,10 @@ from settings import DEBUG
 
 
 def setup_paths(root_path, create=False):
-    global ROOT_PATH, LOCKS_PATH, DATA_PATH, DEVS_PATH, DOMAINS_PATH
+    global ROOT_PATH, LOCKS_PATH, TMP_PATH, DATA_PATH, DEVS_PATH, DOMAINS_PATH
     ROOT_PATH = root_path
     LOCKS_PATH = ROOT_PATH + 'locks/'
+    TMP_PATH = ROOT_PATH + 'tmp/'
     DATA_PATH = ROOT_PATH + 'data/'
     DEVS_PATH = DATA_PATH + 'devs/'
     DOMAINS_PATH = DATA_PATH + 'domains/'
@@ -17,6 +18,7 @@ def setup_paths(root_path, create=False):
         for path in (
             ROOT_PATH,
             LOCKS_PATH,
+            TMP_PATH,
             DATA_PATH,
             DEVS_PATH,
             DOMAINS_PATH,
