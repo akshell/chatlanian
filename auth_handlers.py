@@ -3,6 +3,8 @@
 from __future__ import with_statement
 import httplib
 import os
+import subprocess
+import tempfile
 
 from piston.handler import AnonymousBaseHandler, BaseHandler
 from django.contrib.auth.models import User
@@ -13,7 +15,23 @@ from django.http import HttpResponse
 
 from error import Error
 from utils import check_name
-from paths import get_lock_path, get_dev_path, get_config_path
+from paths import get_lock_path, get_dev_path
+
+
+_draft_path = None
+_keygen_process = None
+
+
+def _prepare_draft():
+    global _draft_path, _keygen_process
+    _draft_path = tempfile.mkdtemp()
+    with open(_draft_path + '/config', 'w') as f:
+        f.write('{}')
+    _keygen_process = subprocess.Popen(
+        ['ssh-keygen', '-q', '-N', '', '-C', '', '-f', _draft_path + '/rsa'])
+
+
+_prepare_draft()
 
 
 class AnonymousSignupHandler(AnonymousBaseHandler):
@@ -42,9 +60,9 @@ class AnonymousSignupHandler(AnonymousBaseHandler):
         user = User.objects.create_user(name, email, request.data['password'])
         user.save()
         open(get_lock_path(name), 'w').close()
-        os.mkdir(get_dev_path(name))
-        with open(get_config_path(name), 'w') as f:
-            f.write('{}')
+        _keygen_process.wait()
+        os.rename(_draft_path, get_dev_path(name))
+        _prepare_draft()
         user.backend = 'chatlanian.auth_backend.AuthBackend'
         auth.login(request, user)
         return HttpResponse(status=httplib.CREATED)

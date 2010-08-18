@@ -16,7 +16,7 @@ from paths import setup_paths
 TEST_ROOT_PATH = '/tmp/chatlanian/'
 
 
-class Test(TestCase):
+class BaseTest(TestCase):
     def setUp(self):
         setup_paths(TEST_ROOT_PATH, True)
         self.client = Client()
@@ -60,6 +60,8 @@ class Test(TestCase):
     def put(self, path, data='', content_type=None, status=httplib.OK):
         return self.request('PUT', path, data, content_type, status)
 
+
+class BasicTest(BaseTest):
     def test_ajax_middleware(self):
         self.assertEqual(self.client.get('/').status_code, httplib.FORBIDDEN)
 
@@ -115,12 +117,20 @@ class Test(TestCase):
             {'name': 'Ho Shi Min', 'password': 'xxx'},
             status=httplib.OK)
 
-    def test_config(self):
+
+class DevTest(BaseTest):
+    def setUp(self):
+        BaseTest.setUp(self)
         self.post(
             'signup',
             {'name': 'bob', 'email': 'bob@xxx.com', 'password': 'xxx'})
+
+    def test_config(self):
         self.assertEqual(self.get('config'), {})
         self.put('config', '{"x":42}', 'application/json')
         self.assertEqual(self.get('config'), {'x': 42})
         self.put('config', 'bad', 'application/json', httplib.BAD_REQUEST)
         self.put('config', '<x>42</x>', 'text/xml', httplib.BAD_REQUEST)
+
+    def test_rsa_pub(self):
+        self.assert_(self.get('rsa.pub').startswith('ssh-rsa '))
