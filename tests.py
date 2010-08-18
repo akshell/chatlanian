@@ -63,8 +63,9 @@ class BaseTest(TestCase):
 
 
 class BasicTest(BaseTest):
-    def test_ajax_middleware(self):
-        self.assertEqual(self.client.get('/').status_code, httplib.FORBIDDEN)
+    def test_resource(self):
+        self.assertEqual(
+            self.client.post('/signup').status_code, httplib.FORBIDDEN)
 
     def test_auth(self):
         self.post(

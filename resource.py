@@ -25,6 +25,8 @@ class Resource(PistonResource):
         PistonResource.__init__(self, handler, authentication)
 
     def __call__(self, request, *args, **kwargs):
+        if request.method != 'GET' and not request.is_ajax():
+            return HttpResponse('Non-AJAX request', status=httplib.FORBIDDEN)
         if request.user.is_authenticated():
             f = open(get_lock_path(request.user.username))
             fcntl.flock(
