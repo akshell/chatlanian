@@ -1,5 +1,6 @@
 # (c) 2010 by Anton Korenyushkin
 
+from __future__ import with_statement
 import re
 
 from error import Error
@@ -19,3 +20,13 @@ def check_name(name):
         raise Error(
             'The name is too long.',
             'Name length must not exceed %d characters.')
+
+
+def read_file(path):
+    with open(path) as f:
+        return f.read()
+
+
+def write_file(path, data):
+    with open(path, 'w') as f:
+        f.write(data)

@@ -1,8 +1,8 @@
 # (c) 2010 by Anton Korenyushkin
 
+from urlparse import urlparse
 import httplib
 import urllib
-from urlparse import urlparse
 import shutil
 
 import simplejson as json
@@ -10,20 +10,17 @@ from django.test import TestCase
 from django.test.client import Client, FakePayload
 from django.utils.http import urlencode
 
-import paths
-
-
-TEST_ROOT_PATH = '/tmp/chatlanian/'
+from paths import create_paths, DATA_PATH, LOCKS_PATH
 
 
 class BaseTest(TestCase):
     def setUp(self):
-        paths.setup_paths(TEST_ROOT_PATH, True)
+        create_paths()
         self.client = Client()
 
     def tearDown(self):
-        shutil.rmtree(paths.DATA_PATH)
-        shutil.rmtree(paths.LOCKS_PATH)
+        shutil.rmtree(DATA_PATH)
+        shutil.rmtree(LOCKS_PATH)
 
     def request(self, method, path, data='', content_type=None,
                 status=httplib.OK):
@@ -63,7 +60,7 @@ class BaseTest(TestCase):
 
 
 class BasicTest(BaseTest):
-    def test_resource(self):
+    def test_misc(self):
         self.assertEqual(
             self.client.post('/signup').status_code, httplib.FORBIDDEN)
 
@@ -72,11 +69,10 @@ class BasicTest(BaseTest):
             'signup',
             {'name': 'bob', 'email': 'bob@xxx.com', 'password': 'xxx'})
         self.post(
-            'login',
-            {'name': 'bob', 'password': 'xxx'},
-            status=httplib.METHOD_NOT_ALLOWED)
+            'signup',
+            {'name': 'mary', 'email': 'mary@yyy.com', 'password': 'yyy'})
         self.post('logout', status=httplib.OK)
-        self.post('logout', status=httplib.UNAUTHORIZED)
+        self.post('logout', status=httplib.OK)
         self.post(
             'signup',
             {'name': 'Bob', 'email': 'bob@yyy.com', 'password': 'yyy'},
@@ -92,6 +88,10 @@ class BasicTest(BaseTest):
         self.post(
             'signup',
             {'name': 'x' * 31, 'email': 'x@xxx.com', 'password': 'xxx'},
+            status=httplib.BAD_REQUEST)
+        self.post(
+            'signup',
+            {'name': 'anonym42', 'email': 'anonym@xxx.com', 'password': 'xxx'},
             status=httplib.BAD_REQUEST)
         self.post(
             'login',
@@ -110,10 +110,12 @@ class BasicTest(BaseTest):
             'signup',
             {'name': 'In--correct', 'email': 'a@xxx.com', 'password': 'xxx'},
             status=httplib.BAD_REQUEST)
+        self.get('rsa.pub')
         self.post(
             'signup',
             {'name': 'Ho-Shi-Min', 'email': 'ho@shi.min', 'password': 'xxx'})
         self.client.logout()
+        self.get('rsa.pub')
         self.post(
             'login',
             {'name': 'Ho Shi Min', 'password': 'xxx'},
@@ -133,6 +135,8 @@ class DevTest(BaseTest):
         self.assertEqual(self.get('config'), {'x': 42})
         self.put('config', 'bad', 'application/json', httplib.BAD_REQUEST)
         self.put('config', '<x>42</x>', 'text/xml', httplib.BAD_REQUEST)
+        self.client.logout()
+        self.assertEqual(self.get('config'), {})
 
     def test_rsa_pub(self):
-        self.assert_(self.get('rsa.pub').startswith('ssh-rsa '))
+        self.assertEqual(self.get('rsa.pub'), 'public key')

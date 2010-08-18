@@ -57,3 +57,5 @@ INSTALLED_APPS = (
 AUTHENTICATION_BACKENDS = (
     'chatlanian.auth_backend.AuthBackend',
 )
+
+TEST_RUNNER = 'chatlanian.test_runner.TestRunner'

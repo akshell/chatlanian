@@ -1,12 +1,10 @@
 # (c) 2010 by Anton Korenyushkin
 
-from __future__ import with_statement
 import httplib
 import os
-import subprocess
-import tempfile
+import shutil
 
-from piston.handler import AnonymousBaseHandler, BaseHandler
+from piston.handler import BaseHandler
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
@@ -15,31 +13,20 @@ from django.http import HttpResponse
 
 from error import Error
 from utils import check_name
-from paths import TMP_PATH, get_lock_path, get_dev_path
+from paths import ANONYM_PREFIX, get_lock_path, get_dev_path, create_dev
 
 
-_draft_path = None
-_keygen_process = None
-
-
-def _prepare_draft():
-    global _draft_path, _keygen_process
-    _draft_path = tempfile.mkdtemp(prefix='draft-', dir=TMP_PATH)
-    with open(_draft_path + '/config', 'w') as f:
-        f.write('{}')
-    _keygen_process = subprocess.Popen(
-        ['ssh-keygen', '-q', '-N', '', '-C', '', '-f', _draft_path + '/rsa'])
-
-
-_prepare_draft()
-
-
-class AnonymousSignupHandler(AnonymousBaseHandler):
+class SignupHandler(BaseHandler):
     allowed_methods = ('POST',)
+    handles_anonyms = True
 
     def create(self, request):
         name = request.data['name']
         check_name(name)
+        if name.startswith(ANONYM_PREFIX):
+            raise Error(
+                'Names starting with "%s" are reserved.' % ANONYM_PREFIX,
+                'Please choose another name.')
         try:
             user = User.objects.get(username__iexact=name)
         except User.DoesNotExist:
@@ -59,22 +46,20 @@ class AnonymousSignupHandler(AnonymousBaseHandler):
                 'Please choose another email.')
         user = User.objects.create_user(name, email, request.data['password'])
         user.save()
-        open(get_lock_path(name), 'w').close()
-        _keygen_process.wait()
-        os.rename(_draft_path, get_dev_path(name))
-        _prepare_draft()
+        if request.is_half_anonymous:
+            open(get_lock_path(name), 'w').close()
+            os.rename(get_dev_path(request.dev_name), get_dev_path(name))
+            os.remove(get_lock_path(request.dev_name))
+        else:
+            create_dev(name)
         user.backend = 'chatlanian.auth_backend.AuthBackend'
         auth.login(request, user)
         return HttpResponse(status=httplib.CREATED)
 
 
-class SignupHandler(BaseHandler):
-    anonymous = AnonymousSignupHandler
-    allowed_methods = ()
-
-
-class AnonymousLoginHandler(AnonymousBaseHandler):
+class LoginHandler(BaseHandler):
     allowed_methods = ('POST',)
+    handles_anonyms = True
 
     def create(self, request):
         user = auth.authenticate(
@@ -83,16 +68,15 @@ class AnonymousLoginHandler(AnonymousBaseHandler):
         if not user or not user.is_active:
             raise Error('Bad user name or password')
         auth.login(request, user)
+        if request.is_half_anonymous:
+            shutil.rmtree(get_dev_path(request.dev_name))
+            os.remove(get_lock_path(request.dev_name))
         return HttpResponse()
-
-
-class LoginHandler(BaseHandler):
-    anonymous = AnonymousLoginHandler
-    allowed_methods = ()
 
 
 class LogoutHandler(BaseHandler):
     allowed_methods = ('POST',)
+    handles_anonyms = True
 
     def create(self, request):
         auth.logout(request)
