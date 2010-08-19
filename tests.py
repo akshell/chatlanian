@@ -140,3 +140,12 @@ class DevTest(BaseTest):
 
     def test_rsa_pub(self):
         self.assertEqual(self.get('rsa.pub'), 'public key')
+
+    def test_apps(self):
+        self.post('apps/', {'name': 'Yo'})
+        self.assertEqual(self.get('apps/'), ['hello-world', 'Yo'])
+        self.post('apps/', {'name': 'yo'}, status=httplib.BAD_REQUEST)
+        self.client.logout()
+        self.assertEqual(self.get('apps/'), ['hello-world'])
+        self.get('rsa.pub')
+        self.assertEqual(self.get('apps/'), ['hello-world'])

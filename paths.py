@@ -1,15 +1,19 @@
 # (c) 2010 by Anton Korenyushkin
 
+from subprocess import Popen
 import os.path
 import os
+import shutil
 
 from settings import DEBUG
-from utils import write_file
+from error import Error
+from utils import read_file, write_file
 
 
 ANONYM_PREFIX = 'anonym'
 ANONYM_NAME = ANONYM_PREFIX
 SAMPLE_NAME = 'hello-world'
+SAMPLE_PATH = os.path.abspath(os.path.dirname(__file__)) + '/sample'
 
 
 class Path(str):
@@ -28,7 +32,11 @@ def _child(name, cls=str):
 
 
 class AppPath(Path):
+    name = _child('name')
     code = _child('code')
+    git = _child('git')
+    domains = _child('domains', Path)
+    envs = _child('envs', Path)
 
 
 class AppsPath(Path):
@@ -80,9 +88,34 @@ def create_paths():
             os.makedirs(path)
     if not os.path.isfile(dev_path.config):
         write_file(dev_path.config, '{}')
+    if not os.path.isfile(app_path.name):
+        write_file(app_path.name, SAMPLE_NAME)
     if not os.path.islink(app_path.code):
-        os.symlink(os.path.abspath(os.path.dirname(__file__) + '/sample'),
-                   app_path.code)
+        os.symlink(SAMPLE_PATH, app_path.code)
+
+
+def create_app(dev_name, app_name):
+    app_path = devs_path[dev_name].apps[app_name]
+    if os.path.isdir(app_path):
+        raise Error(
+            'The app "%s" already exists.' % read_file(app_path.name),
+            'App name must be case-insensitively unique.')
+    os.mkdir(app_path)
+    write_file(app_path.name, app_name)
+    shutil.copytree(SAMPLE_PATH, app_path.code)
+    os.mkdir(app_path.git)
+    os.mkdir(app_path.domains)
+    os.mkdir(app_path.envs)
+    write_file(app_path.envs['debug'], 'debug')
+    cmd = ['git', '--work-tree', app_path.code, '--git-dir', app_path.git]
+    Popen(cmd + ['init', '--quiet']).wait()
+    Popen(cmd + ['add', '.']).wait()
+    Popen(
+        cmd + [
+            'commit', '--quiet',
+            '--author', 'akshell <akshell@akshell.com>',
+            '--message', 'Initial commit.',
+        ]).wait()
 
 
 def create_dev(dev_name=None):
@@ -91,5 +124,6 @@ def create_dev(dev_name=None):
     os.rename(NEXT_DRAFT_PATH, CURR_DRAFT_PATH)
     dev_name = dev_name or ANONYM_PREFIX + draft_name
     os.rename(DRAFTS_PATH + '/' + draft_name, devs_path[dev_name])
+    create_app(dev_name, SAMPLE_NAME)
     open(locks_path[dev_name], 'w').close()
     return dev_name
