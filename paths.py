@@ -10,7 +10,9 @@ from utils import write_file
 ANONYM_PREFIX = 'anonym'
 ANONYM_NAME = ANONYM_PREFIX
 SAMPLE_NAME = 'hello-world'
-SAMPLE_PATH = os.path.abspath(os.path.dirname(__file__)) + '/sample'
+CHATLANIAN_PATH = os.path.abspath(os.path.dirname(__file__))
+SAMPLE_PATH = CHATLANIAN_PATH + '/sample'
+INIT_SQL_PATH = os.path.dirname(CHATLANIAN_PATH) + '/patsak/init.sql'
 
 
 class Path(str):
