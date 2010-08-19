@@ -6,7 +6,8 @@ import httplib
 from piston.resource import Resource as PistonResource
 from django.http import HttpResponse
 
-from paths import ANONYM_NAME, LOCKS_PATH, create_dev
+from paths import ANONYM_NAME, LOCKS_PATH
+from managers import create_dev
 
 
 class Authentication(object):

@@ -7,8 +7,9 @@ from piston.handler import BaseHandler
 from piston.utils import require_mime
 from django.http import HttpResponse
 
-from paths import DEVS_PATH, create_app
 from utils import read_file, write_file, check_name
+from paths import DEVS_PATH
+from managers import create_app
 
 
 class ConfigHandler(BaseHandler):

@@ -13,7 +13,8 @@ from django.http import HttpResponse
 
 from error import Error
 from utils import check_name
-from paths import ANONYM_PREFIX, LOCKS_PATH, DEVS_PATH, create_dev
+from paths import ANONYM_PREFIX, LOCKS_PATH, DEVS_PATH
+from managers import create_dev
 
 
 class SignupHandler(BaseHandler):
