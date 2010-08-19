@@ -12,10 +12,44 @@ ANONYM_NAME = ANONYM_PREFIX
 SAMPLE_NAME = 'hello-world'
 
 
+class Path(str):
+    child_class = str
+
+    def __getitem__(self, name):
+        return self.child_class(self + '/' + name.lower())
+
+
+def _child(name, cls=str):
+    suffix = '/' + name
+    @property
+    def result(self):
+        return cls(self + suffix)
+    return result
+
+
+class AppPath(Path):
+    code = _child('code')
+
+
+class AppsPath(Path):
+    child_class = AppPath
+
+
+class DevPath(Path):
+    config = _child('config')
+    rsa_pub = _child('rsa.pub')
+    apps = _child('apps', AppsPath)
+
+
+class DevsPath(Path):
+    child_class = DevPath
+
+
 def setup_paths(root_path):
     global ROOT_PATH, LOCKS_PATH
     global DRAFTS_PATH, CURR_DRAFT_PATH, NEXT_DRAFT_PATH
     global DATA_PATH, DEVS_PATH, DOMAINS_PATH
+    global locks_path, devs_path, domains_path
     ROOT_PATH = root_path
     LOCKS_PATH = ROOT_PATH + '/locks'
     DRAFTS_PATH = ROOT_PATH + '/drafts'
@@ -24,18 +58,31 @@ def setup_paths(root_path):
     DATA_PATH = ROOT_PATH + '/data'
     DEVS_PATH = DATA_PATH + '/devs'
     DOMAINS_PATH = DATA_PATH + '/domains'
+    locks_path = Path(LOCKS_PATH)
+    devs_path = DevsPath(DEVS_PATH)
+    domains_path = Path(DOMAINS_PATH)
 
 
 setup_paths(
     os.path.abspath(os.path.dirname(__file__)) + '/root' if DEBUG else '/ak')
 
 
-def get_lock_path(dev_name):
-    return LOCKS_PATH + '/' + dev_name
-
-
-def get_dev_path(dev_name):
-    return DEVS_PATH + '/' + dev_name.lower()
+def create_paths():
+    dev_path = devs_path[ANONYM_NAME]
+    app_path = dev_path.apps[SAMPLE_NAME]
+    for path in (
+        LOCKS_PATH,
+        DRAFTS_PATH,
+        DOMAINS_PATH,
+        app_path,
+    ):
+        if not os.path.isdir(path):
+            os.makedirs(path)
+    if not os.path.isfile(dev_path.config):
+        write_file(dev_path.config, '{}')
+    if not os.path.islink(app_path.code):
+        os.symlink(os.path.abspath(os.path.dirname(__file__) + '/sample'),
+                   app_path.code)
 
 
 def create_dev(dev_name=None):
@@ -43,45 +90,6 @@ def create_dev(dev_name=None):
     os.symlink(str(int(draft_name) + 1), NEXT_DRAFT_PATH)
     os.rename(NEXT_DRAFT_PATH, CURR_DRAFT_PATH)
     dev_name = dev_name or ANONYM_PREFIX + draft_name
-    os.rename(DRAFTS_PATH + '/' + draft_name, get_dev_path(dev_name))
-    open(get_lock_path(dev_name), 'w').close()
+    os.rename(DRAFTS_PATH + '/' + draft_name, devs_path[dev_name])
+    open(locks_path[dev_name], 'w').close()
     return dev_name
-
-
-def get_config_path(dev_name):
-    return get_dev_path(dev_name) + '/config'
-
-
-def get_apps_path(dev_name):
-    return get_dev_path(dev_name) + '/apps'
-
-
-def get_app_path(dev_name, app_name):
-    return get_apps_path(dev_name) + '/' + app_name.lower()
-
-
-def get_code_path(dev_name, app_name):
-    return get_app_path(dev_name, app_name) + '/code'
-
-
-def create_paths():
-    for path in (
-        ROOT_PATH,
-        LOCKS_PATH,
-        DRAFTS_PATH,
-        DATA_PATH,
-        DEVS_PATH,
-        DOMAINS_PATH,
-        get_dev_path(ANONYM_NAME),
-        get_apps_path(ANONYM_NAME),
-        get_app_path(ANONYM_NAME, SAMPLE_NAME),
-    ):
-        if not os.path.isdir(path):
-            os.mkdir(path)
-    anonym_config_path = get_config_path(ANONYM_NAME)
-    if not os.path.isfile(anonym_config_path):
-        write_file(anonym_config_path, '{}')
-    anonym_code_path = get_code_path(ANONYM_NAME, SAMPLE_NAME)
-    if not os.path.islink(anonym_code_path):
-        os.symlink(os.path.abspath(os.path.dirname(__file__) + '/sample'),
-                   anonym_code_path)
