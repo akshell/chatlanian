@@ -31,6 +31,11 @@ def _child(name, cls=str):
     return result
 
 
+class DraftsPath(Path):
+    curr = _child('curr')
+    next = _child('next')
+
+
 class AppPath(Path):
     name = _child('name')
     code = _child('code')
@@ -54,21 +59,11 @@ class DevsPath(Path):
 
 
 def setup_paths(root_path):
-    global ROOT_PATH, LOCKS_PATH
-    global DRAFTS_PATH, CURR_DRAFT_PATH, NEXT_DRAFT_PATH
-    global DATA_PATH, DEVS_PATH, DOMAINS_PATH
-    global locks_path, devs_path, domains_path
-    ROOT_PATH = root_path
-    LOCKS_PATH = ROOT_PATH + '/locks'
-    DRAFTS_PATH = ROOT_PATH + '/drafts'
-    CURR_DRAFT_PATH = DRAFTS_PATH + '/curr'
-    NEXT_DRAFT_PATH = DRAFTS_PATH + '/next'
-    DATA_PATH = ROOT_PATH + '/data'
-    DEVS_PATH = DATA_PATH + '/devs'
-    DOMAINS_PATH = DATA_PATH + '/domains'
-    locks_path = Path(LOCKS_PATH)
-    devs_path = DevsPath(DEVS_PATH)
-    domains_path = Path(DOMAINS_PATH)
+    global LOCKS_PATH, DRAFTS_PATH, DEVS_PATH, DOMAINS_PATH
+    LOCKS_PATH = Path(root_path + '/locks')
+    DRAFTS_PATH = DraftsPath(root_path + '/drafts')
+    DEVS_PATH = DevsPath(root_path + '/data/devs')
+    DOMAINS_PATH = Path(root_path + '/data/domains')
 
 
 setup_paths(
@@ -76,7 +71,7 @@ setup_paths(
 
 
 def create_paths():
-    dev_path = devs_path[ANONYM_NAME]
+    dev_path = DEVS_PATH[ANONYM_NAME]
     app_path = dev_path.apps[SAMPLE_NAME]
     for path in (
         LOCKS_PATH,
@@ -95,7 +90,7 @@ def create_paths():
 
 
 def create_app(dev_name, app_name):
-    app_path = devs_path[dev_name].apps[app_name]
+    app_path = DEVS_PATH[dev_name].apps[app_name]
     if os.path.isdir(app_path):
         raise Error(
             'The app "%s" already exists.' % read_file(app_path.name),
@@ -119,11 +114,11 @@ def create_app(dev_name, app_name):
 
 
 def create_dev(dev_name=None):
-    draft_name = os.readlink(CURR_DRAFT_PATH)
-    os.symlink(str(int(draft_name) + 1), NEXT_DRAFT_PATH)
-    os.rename(NEXT_DRAFT_PATH, CURR_DRAFT_PATH)
+    draft_name = os.readlink(DRAFTS_PATH.curr)
+    os.symlink(str(int(draft_name) + 1), DRAFTS_PATH.next)
+    os.rename(DRAFTS_PATH.next, DRAFTS_PATH.curr)
     dev_name = dev_name or ANONYM_PREFIX + draft_name
-    os.rename(DRAFTS_PATH + '/' + draft_name, devs_path[dev_name])
+    os.rename(DRAFTS_PATH[draft_name], DEVS_PATH[dev_name])
     create_app(dev_name, SAMPLE_NAME)
-    open(locks_path[dev_name], 'w').close()
+    open(LOCKS_PATH[dev_name], 'w').close()
     return dev_name

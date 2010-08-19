@@ -10,7 +10,7 @@ from django.test import TestCase
 from django.test.client import Client, FakePayload
 from django.utils.http import urlencode
 
-from paths import create_paths, DATA_PATH, LOCKS_PATH
+from paths import create_paths, LOCKS_PATH, DEVS_PATH, DOMAINS_PATH
 
 
 class BaseTest(TestCase):
@@ -19,8 +19,9 @@ class BaseTest(TestCase):
         self.client = Client()
 
     def tearDown(self):
-        shutil.rmtree(DATA_PATH)
         shutil.rmtree(LOCKS_PATH)
+        shutil.rmtree(DEVS_PATH)
+        shutil.rmtree(DOMAINS_PATH)
 
     def request(self, method, path, data='', content_type=None,
                 status=httplib.OK):

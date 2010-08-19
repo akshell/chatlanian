@@ -6,7 +6,7 @@ import httplib
 from piston.resource import Resource as PistonResource
 from django.http import HttpResponse
 
-from paths import ANONYM_NAME, locks_path, create_dev
+from paths import ANONYM_NAME, LOCKS_PATH, create_dev
 
 
 class Authentication(object):
@@ -41,7 +41,7 @@ class Resource(PistonResource):
                     request.is_anonymous = True
             request.is_half_anonymous = not request.is_anonymous
         if not request.is_anonymous:
-            f = open(locks_path[request.dev_name])
+            f = open(LOCKS_PATH[request.dev_name])
             fcntl.flock(
                 f, fcntl.LOCK_SH if request.method == 'GET' else fcntl.LOCK_EX)
         else:

@@ -21,7 +21,7 @@ class TestRunner(DjangoTestSuiteRunner):
         paths.create_paths()
         tablespace_paths = []
         for i in range(TEST_DRAFT_COUNT):
-            draft_path = paths.DRAFTS_PATH + '/' + str(i)
+            draft_path = paths.DRAFTS_PATH[str(i)]
             tablespace_path = draft_path + '/tablespace'
             os.makedirs(tablespace_path)
             tablespace_paths.append(tablespace_path)
@@ -29,7 +29,7 @@ class TestRunner(DjangoTestSuiteRunner):
             write_file(draft_path + '/config', '{}')
             write_file(draft_path + '/rsa.pub', 'public key')
         Popen(['sudo', 'chown', 'postgres'] + tablespace_paths).wait()
-        os.symlink('0', paths.CURR_DRAFT_PATH)
+        os.symlink('0', paths.DRAFTS_PATH.curr)
 
     def teardown_test_environment(self, **kwargs):
         DjangoTestSuiteRunner.teardown_test_environment(self, **kwargs)

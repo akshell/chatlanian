@@ -13,7 +13,7 @@ from django.http import HttpResponse
 
 from error import Error
 from utils import check_name
-from paths import ANONYM_PREFIX, locks_path, devs_path, create_dev
+from paths import ANONYM_PREFIX, LOCKS_PATH, DEVS_PATH, create_dev
 
 
 class SignupHandler(BaseHandler):
@@ -47,9 +47,9 @@ class SignupHandler(BaseHandler):
         user = User.objects.create_user(name, email, request.data['password'])
         user.save()
         if request.is_half_anonymous:
-            open(locks_path[name], 'w').close()
-            os.rename(devs_path[request.dev_name], devs_path[name])
-            os.remove(locks_path[request.dev_name])
+            open(LOCKS_PATH[name], 'w').close()
+            os.rename(DEVS_PATH[request.dev_name], DEVS_PATH[name])
+            os.remove(LOCKS_PATH[request.dev_name])
         else:
             create_dev(name)
         user.backend = 'chatlanian.auth_backend.AuthBackend'
@@ -69,8 +69,8 @@ class LoginHandler(BaseHandler):
             raise Error('Bad user name or password')
         auth.login(request, user)
         if request.is_half_anonymous:
-            shutil.rmtree(devs_path[request.dev_name])
-            os.remove(locks_path[request.dev_name])
+            shutil.rmtree(DEVS_PATH[request.dev_name])
+            os.remove(LOCKS_PATH[request.dev_name])
         return HttpResponse()
 
 

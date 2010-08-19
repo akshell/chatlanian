@@ -7,7 +7,7 @@ from piston.handler import BaseHandler
 from piston.utils import require_mime
 from django.http import HttpResponse
 
-from paths import devs_path, create_app
+from paths import DEVS_PATH, create_app
 from utils import read_file, write_file, check_name
 
 
@@ -16,12 +16,12 @@ class ConfigHandler(BaseHandler):
 
     def read(self, request):
         return HttpResponse(
-            read_file(devs_path[request.dev_name].config),
+            read_file(DEVS_PATH[request.dev_name].config),
             'application/json; charset=utf-8')
 
     @require_mime('json')
     def update(self, request):
-        write_file(devs_path[request.dev_name].config, request.raw_post_data)
+        write_file(DEVS_PATH[request.dev_name].config, request.raw_post_data)
         return HttpResponse()
 
 
@@ -31,7 +31,7 @@ class RsaPubHandler(BaseHandler):
 
     def read(self, request):
         return HttpResponse(
-            read_file(devs_path[request.dev_name].rsa_pub),
+            read_file(DEVS_PATH[request.dev_name].rsa_pub),
             'text/plain; charset=utf-8')
 
 
@@ -39,7 +39,7 @@ class AppsHandler(BaseHandler):
     allowed_methods = ('GET', 'POST')
 
     def read(self, request):
-        apps_path = devs_path[request.dev_name].apps
+        apps_path = DEVS_PATH[request.dev_name].apps
         lower_names = os.listdir(apps_path)
         lower_names.sort()
         return [
