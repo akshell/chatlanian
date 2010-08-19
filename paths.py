@@ -35,7 +35,7 @@ def get_lock_path(dev_name):
 
 
 def get_dev_path(dev_name):
-    return DEVS_PATH + '/' + dev_name
+    return DEVS_PATH + '/' + dev_name.lower()
 
 
 def create_dev(dev_name=None):
@@ -57,7 +57,7 @@ def get_apps_path(dev_name):
 
 
 def get_app_path(dev_name, app_name):
-    return get_apps_path(dev_name) + '/' + app_name
+    return get_apps_path(dev_name) + '/' + app_name.lower()
 
 
 def get_code_path(dev_name, app_name):
