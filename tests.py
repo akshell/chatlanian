@@ -41,7 +41,7 @@ class BaseTest(TestCase):
         response = self.client.request(**request)
         self.assertEqual(response.status_code, status, response.content)
         return (json.loads(response.content)
-                if response['Content-Type'] == 'application/json' else
+                if response['Content-Type'].startswith('application/json') else
                 response.content)
 
     def get(self, path, data=None, status=httplib.OK):

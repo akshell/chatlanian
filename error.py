@@ -13,5 +13,5 @@ class Error(HttpStatusCode):
             self,
             HttpResponse(
                 json.dumps({'message': message, 'comment': comment}),
-                'application/json',
+                'application/json; charset=utf-8',
                 status))

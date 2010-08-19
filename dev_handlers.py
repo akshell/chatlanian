@@ -13,7 +13,8 @@ class ConfigHandler(BaseHandler):
 
     def read(self, request):
         return HttpResponse(
-            read_file(get_config_path(request.dev_name)), 'application/json')
+            read_file(get_config_path(request.dev_name)),
+            'application/json; charset=utf-8')
 
     @require_mime('json')
     def update(self, request):
@@ -28,4 +29,4 @@ class RsaPubHandler(BaseHandler):
     def read(self, request):
         return HttpResponse(
             read_file(get_dev_path(request.dev_name) + '/rsa.pub'),
-            'text/plain')
+            'text/plain; charset=utf-8')
