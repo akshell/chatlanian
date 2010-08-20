@@ -8,12 +8,12 @@ import shutil
 from django.db import connection, transaction
 
 from error import Error
-from utils import read_file, write_file
+from utils import read_file, write_file, get_schema_name
 from paths import (
     SAMPLE_PATH, ANONYM_PREFIX, SAMPLE_NAME, LOCKS_PATH, DRAFTS_PATH, DEVS_PATH)
 
 
-_CREATE_SCHEMA_SQL = 'SELECT ak.create_schema(%s);'
+CREATE_SCHEMA_SQL = 'SELECT ak.create_schema(%s);'
 
 
 @transaction.commit_manually
@@ -23,9 +23,9 @@ def create_app(dev_name, app_name):
         raise Error(
             'The app "%s" already exists.' % read_file(app_path.name),
             'App name must be case-insensitively unique.')
-    main_schema_name = (dev_name + ':' + app_name).lower()
+    main_schema_name = get_schema_name(dev_name, app_name)
     connection.cursor().execute(
-        _CREATE_SCHEMA_SQL * 2, (main_schema_name, main_schema_name + ':debug'))
+        CREATE_SCHEMA_SQL * 2, (main_schema_name, main_schema_name + ':debug'))
     transaction.commit()
     os.mkdir(app_path)
     write_file(app_path.name, app_name)

@@ -161,9 +161,29 @@ class AppTest(BaseTest):
         self.post(
             'signup',
             {'name': 'bob', 'email': 'bob@xxx.com', 'password': 'xxx'})
-        self.post('apps/', {'name': 'First'})
+        self.post('apps/', {'name': 'Blog'})
 
     def test_delete_app(self):
-        self.delete('apps/First/')
+        self.delete('apps/Blog/')
         self.delete('apps/Hello-World/')
         self.delete('apps/no-such-app/', status=httplib.NOT_FOUND)
+
+    def test_envs(self):
+        self.assertEqual(self.get('apps/blog/envs/'), ['debug'])
+        self.post('apps/blog/envs/', {'name': 'Test'})
+        self.assertEqual(self.get('apps/blog/envs/'), ['debug', 'Test'])
+        self.post(
+            'apps/blog/envs/debug', {'name': 'test'},
+            status=httplib.BAD_REQUEST)
+        self.post(
+            'apps/blog/envs/', {'name': 'Debug'},
+            status=httplib.BAD_REQUEST)
+        self.delete('apps/blog/envs/Debug')
+        self.delete('apps/blog/envs/no-such', status=httplib.NOT_FOUND)
+        self.assertEqual(self.get('apps/blog/envs/'), ['Test'])
+        self.post(
+            'apps/blog/envs/test', {'name': 'bad!'}, status=httplib.BAD_REQUEST)
+        self.post(
+            'apps/blog/envs/no-such', {'name': 'xxx'}, status=httplib.NOT_FOUND)
+        self.post('apps/blog/envs/test', {'name': 'Debug'}, status=httplib.OK)
+        self.assertEqual(self.get('apps/blog/envs/'), ['Debug'])

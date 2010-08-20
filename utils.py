@@ -30,3 +30,10 @@ def read_file(path):
 def write_file(path, data):
     with open(path, 'w') as f:
         f.write(data)
+
+
+def get_schema_name(dev_name, app_name, env_name=None):
+    schema_name = dev_name + ':' + app_name
+    if env_name:
+        schema_name += ':' + env_name
+    return schema_name.lower()
