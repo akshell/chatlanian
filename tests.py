@@ -50,7 +50,7 @@ class BaseTest(TestCase):
             path += '?' + urlencode(data, True)
         return self.request('GET', path, status=status)
 
-    def post(self, path, data='', content_type=None, status=httplib.CREATED):
+    def post(self, path, data='', content_type=None, status=httplib.OK):
         if not isinstance(data, str):
             data = json.dumps(data)
             content_type = 'application/json'
@@ -71,12 +71,14 @@ class BasicTest(BaseTest):
     def test_auth(self):
         self.post(
             'signup',
-            {'name': 'bob', 'email': 'bob@xxx.com', 'password': 'xxx'})
+            {'name': 'bob', 'email': 'bob@xxx.com', 'password': 'xxx'},
+            status=httplib.CREATED)
         self.post(
             'signup',
-            {'name': 'mary', 'email': 'mary@yyy.com', 'password': 'yyy'})
-        self.post('logout', status=httplib.OK)
-        self.post('logout', status=httplib.OK)
+            {'name': 'mary', 'email': 'mary@yyy.com', 'password': 'yyy'},
+            status=httplib.CREATED)
+        self.post('logout')
+        self.post('logout')
         self.post(
             'signup',
             {'name': 'Bob', 'email': 'bob@yyy.com', 'password': 'yyy'},
@@ -105,10 +107,7 @@ class BasicTest(BaseTest):
             'login',
             {'name': 'bad', 'password': 'xxx'},
             status=httplib.BAD_REQUEST)
-        self.post(
-            'login',
-            {'name': 'bob', 'password': 'xxx'},
-            status=httplib.OK)
+        self.post('login', {'name': 'bob', 'password': 'xxx'})
         self.client.logout()
         self.post(
             'signup',
@@ -117,13 +116,11 @@ class BasicTest(BaseTest):
         self.get('rsa.pub')
         self.post(
             'signup',
-            {'name': 'Ho-Shi-Min', 'email': 'ho@shi.min', 'password': 'xxx'})
+            {'name': 'Ho-Shi-Min', 'email': 'ho@shi.min', 'password': 'xxx'},
+            status=httplib.CREATED)
         self.client.logout()
         self.get('rsa.pub')
-        self.post(
-            'login',
-            {'name': 'Ho Shi Min', 'password': 'xxx'},
-            status=httplib.OK)
+        self.post('login', {'name': 'Ho Shi Min', 'password': 'xxx'})
 
 
 class DevTest(BaseTest):
@@ -131,7 +128,8 @@ class DevTest(BaseTest):
         BaseTest.setUp(self)
         self.post(
             'signup',
-            {'name': 'bob', 'email': 'bob@xxx.com', 'password': 'xxx'})
+            {'name': 'bob', 'email': 'bob@xxx.com', 'password': 'xxx'},
+            status=httplib.CREATED)
 
     def test_config(self):
         self.assertEqual(self.get('config'), {})
@@ -146,7 +144,7 @@ class DevTest(BaseTest):
         self.assertEqual(self.get('rsa.pub'), 'public key')
 
     def test_apps(self):
-        self.post('apps/', {'name': 'Yo'})
+        self.post('apps/', {'name': 'Yo'}, status=httplib.CREATED)
         self.assertEqual(self.get('apps/'), ['hello-world', 'Yo'])
         self.post('apps/', {'name': 'yo'}, status=httplib.BAD_REQUEST)
         self.client.logout()
@@ -160,8 +158,9 @@ class AppTest(BaseTest):
         BaseTest.setUp(self)
         self.post(
             'signup',
-            {'name': 'bob', 'email': 'bob@xxx.com', 'password': 'xxx'})
-        self.post('apps/', {'name': 'Blog'})
+            {'name': 'bob', 'email': 'bob@xxx.com', 'password': 'xxx'},
+            status=httplib.CREATED)
+        self.post('apps/', {'name': 'Blog'}, status=httplib.CREATED)
 
     def test_delete_app(self):
         self.delete('apps/Blog/')
@@ -170,7 +169,7 @@ class AppTest(BaseTest):
 
     def test_envs(self):
         self.assertEqual(self.get('apps/blog/envs/'), ['debug'])
-        self.post('apps/blog/envs/', {'name': 'Test'})
+        self.post('apps/blog/envs/', {'name': 'Test'}, status=httplib.CREATED)
         self.assertEqual(self.get('apps/blog/envs/'), ['debug', 'Test'])
         self.post(
             'apps/blog/envs/debug', {'name': 'test'},
@@ -185,5 +184,5 @@ class AppTest(BaseTest):
             'apps/blog/envs/test', {'name': 'bad!'}, status=httplib.BAD_REQUEST)
         self.post(
             'apps/blog/envs/no-such', {'name': 'xxx'}, status=httplib.NOT_FOUND)
-        self.post('apps/blog/envs/test', {'name': 'Debug'}, status=httplib.OK)
+        self.post('apps/blog/envs/test', {'name': 'Debug'})
         self.assertEqual(self.get('apps/blog/envs/'), ['Debug'])
