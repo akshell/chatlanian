@@ -59,6 +59,9 @@ class BaseTest(TestCase):
     def put(self, path, data='', content_type=None, status=httplib.OK):
         return self.request('PUT', path, data, content_type, status)
 
+    def delete(self, path, status=httplib.OK):
+        return self.request('DELETE', path, status=status)
+
 
 class BasicTest(BaseTest):
     def test_misc(self):
@@ -150,3 +153,17 @@ class DevTest(BaseTest):
         self.assertEqual(self.get('apps/'), ['hello-world'])
         self.get('rsa.pub')
         self.assertEqual(self.get('apps/'), ['hello-world'])
+
+
+class AppTest(BaseTest):
+    def setUp(self):
+        BaseTest.setUp(self)
+        self.post(
+            'signup',
+            {'name': 'bob', 'email': 'bob@xxx.com', 'password': 'xxx'})
+        self.post('apps/', {'name': 'First'})
+
+    def test_delete_app(self):
+        self.delete('apps/First/')
+        self.delete('apps/Hello-World/')
+        self.delete('apps/no-such-app/', status=httplib.NOT_FOUND)

@@ -20,4 +20,5 @@ urlpatterns = patterns(
     (r'^config$', Resource(ConfigHandler)),
     (r'^rsa\.pub$', Resource(RsaPubHandler)),
     (r'^apps/$', Resource(AppsHandler)),
+    (r'^apps/(?P<app_name>[a-zA-Z0-9-]+)/', include('chatlanian.app_urls')),
 )

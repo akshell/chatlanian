@@ -12,7 +12,8 @@ ANONYM_NAME = ANONYM_PREFIX
 SAMPLE_NAME = 'hello-world'
 CHATLANIAN_PATH = os.path.abspath(os.path.dirname(__file__))
 SAMPLE_PATH = CHATLANIAN_PATH + '/sample'
-INIT_SQL_PATH = os.path.dirname(CHATLANIAN_PATH) + '/patsak/init.sql'
+PATSAK_INIT_SQL_PATH = os.path.dirname(CHATLANIAN_PATH) + '/patsak/init.sql'
+CHATLANIAN_INIT_SQL_PATH = CHATLANIAN_PATH + '/init.sql'
 
 
 class Path(str):
@@ -58,9 +59,10 @@ class DevsPath(Path):
 
 
 def setup_paths(root_path):
-    global LOCKS_PATH, DRAFTS_PATH, DEVS_PATH, DOMAINS_PATH
+    global LOCKS_PATH, DRAFTS_PATH, TMP_PATH, DEVS_PATH, DOMAINS_PATH
     LOCKS_PATH = Path(root_path + '/locks')
     DRAFTS_PATH = DraftsPath(root_path + '/drafts')
+    TMP_PATH = Path(root_path + '/tmp')
     DEVS_PATH = DevsPath(root_path + '/data/devs')
     DOMAINS_PATH = Path(root_path + '/data/domains')
 
@@ -75,6 +77,7 @@ def create_paths():
     for path in (
         LOCKS_PATH,
         DRAFTS_PATH,
+        TMP_PATH,
         DOMAINS_PATH,
         app_path,
     ):

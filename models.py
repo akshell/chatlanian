@@ -4,11 +4,13 @@ from django.db import connection
 from django.db.models.signals import post_syncdb
 
 from utils import read_file
-from paths import INIT_SQL_PATH
+from paths import PATSAK_INIT_SQL_PATH, CHATLANIAN_INIT_SQL_PATH
 
 
 def _run_init_sql(**kwargs):
-    connection.cursor().execute(read_file(INIT_SQL_PATH))
+    connection.cursor().execute(
+        (read_file(PATSAK_INIT_SQL_PATH) +
+         read_file(CHATLANIAN_INIT_SQL_PATH)).replace('%', '%%'))
     post_syncdb.disconnect(_run_init_sql)
 
 
