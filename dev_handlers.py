@@ -15,13 +15,13 @@ from managers import create_app
 class ConfigHandler(BaseHandler):
     allowed_methods = ('GET', 'PUT')
 
-    def read(self, request):
+    def get(self, request):
         return HttpResponse(
             read_file(DEVS_PATH[request.dev_name].config),
             'application/json; charset=utf-8')
 
     @require_mime('json')
-    def update(self, request):
+    def put(self, request):
         write_file(DEVS_PATH[request.dev_name].config, request.raw_post_data)
         return HttpResponse()
 
@@ -30,7 +30,7 @@ class RsaPubHandler(BaseHandler):
     allowed_methods = ('GET')
     handles_anonyms = False
 
-    def read(self, request):
+    def get(self, request):
         return HttpResponse(
             read_file(DEVS_PATH[request.dev_name].rsa_pub),
             'text/plain; charset=utf-8')
@@ -39,7 +39,7 @@ class RsaPubHandler(BaseHandler):
 class AppsHandler(BaseHandler):
     allowed_methods = ('GET', 'POST')
 
-    def read(self, request):
+    def get(self, request):
         apps_path = DEVS_PATH[request.dev_name].apps
         lower_names = os.listdir(apps_path)
         lower_names.sort()
@@ -48,7 +48,7 @@ class AppsHandler(BaseHandler):
             for lower_name in lower_names
         ]
 
-    def create(self, request):
+    def post(self, request):
         name = request.data['name']
         check_name(name)
         create_app(request.dev_name, name)

@@ -21,7 +21,7 @@ class SignupHandler(BaseHandler):
     allowed_methods = ('POST',)
     handles_anonyms = True
 
-    def create(self, request):
+    def post(self, request):
         name = request.data['name']
         check_name(name)
         if name.startswith(ANONYM_PREFIX):
@@ -62,7 +62,7 @@ class LoginHandler(BaseHandler):
     allowed_methods = ('POST',)
     handles_anonyms = True
 
-    def create(self, request):
+    def post(self, request):
         user = auth.authenticate(
             username=request.data['name'].replace(' ', '-'),
             password=request.data['password'])
@@ -79,6 +79,6 @@ class LogoutHandler(BaseHandler):
     allowed_methods = ('POST',)
     handles_anonyms = True
 
-    def create(self, request):
+    def post(self, request):
         auth.logout(request)
         return HttpResponse()

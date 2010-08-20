@@ -11,6 +11,13 @@ from managers import create_dev
 
 
 class Resource(PistonResource):
+    callmap = {
+        'GET': 'get',
+        'POST': 'post',
+        'PUT': 'put',
+        'DELETE': 'delete',
+    }
+
     def __call__(self, request, *args, **kwargs):
         if request.method != 'GET' and not request.is_ajax():
             return HttpResponse('Non-AJAX request', status=httplib.FORBIDDEN)

@@ -49,7 +49,7 @@ class EnvsHandler(BaseHandler):
     allowed_methods = ('GET', 'POST')
 
     @_getting_app_path
-    def read(self, request, app_name, app_path):
+    def get(self, request, app_name, app_path):
         return [
             read_file(app_path.envs[lower_name])
             for lower_name in sorted(os.listdir(app_path.envs))
@@ -57,7 +57,7 @@ class EnvsHandler(BaseHandler):
 
     @transaction.commit_manually
     @_getting_app_path
-    def create(self, request, app_name, app_path):
+    def post(self, request, app_name, app_path):
         env_name = request.data['name']
         check_name(env_name)
         env_path = app_path.envs[env_name]
@@ -82,7 +82,7 @@ class EnvHandler(BaseHandler):
 
     @transaction.commit_manually
     @_getting_app_path
-    def create(self, request, app_name, env_name, app_path):
+    def post(self, request, app_name, env_name, app_path):
         env_path = app_path.envs[env_name]
         _check_env_exists(env_name, env_path)
         new_env_name = request.data['name']
