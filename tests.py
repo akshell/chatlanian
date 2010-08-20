@@ -201,3 +201,66 @@ class AppTest(BaseTest):
         self.post('apps/', {'name': 'Forum'}, status=httplib.CREATED)
         self.put('apps/forum/domains', ['forum.akshell.com'])
         self.put(path, ['forum.akshell.com'], status=httplib.BAD_REQUEST)
+
+    def test_code(self):
+        path = 'apps/blog/code/'
+        self.assertEqual(
+            self.get(path),
+            {
+                'templates': {
+                    'index.html': None,
+                    'base.html': None,
+                    'error.html': None,
+                },
+                'static': {'base.css': None},
+                'main.js': None,
+            })
+        self.post(
+            path,
+            {
+                'action': 'rm',
+                'paths': ['templates', '/static//base.css', 'no/such'],
+            })
+        self.assertEqual(self.get(path), {'static': {}, 'main.js': None})
+        self.put(path + 'static/hello.txt', 'hello world')
+        self.assertEqual(self.get(path + '//static/hello.txt'), 'hello world')
+        self.post(
+            path, {'action': 'mkdir', 'path': 'a/b/c'}, status=httplib.CREATED)
+        self.post(
+            path,
+            {
+                'action': 'mv',
+                'srcPaths': ['a/b', 'main.js'],
+                'dstPath': 'static',
+            })
+        self.assertEqual(
+            self.get(path),
+            {
+                'a': {},
+                'static': {'b': {'c': {}}, 'main.js': None, 'hello.txt': None},
+            })
+        self.post(
+            path, {'action': 'mkdir', 'path': 'x/../y'},
+            status=httplib.BAD_REQUEST)
+        self.get(path + '/', status=httplib.BAD_REQUEST)
+        self.post(
+            path, {'action': 'mkdir', 'path': 'static'},
+            status=httplib.BAD_REQUEST)
+        self.post(
+            path, {'action': 'mv', 'srcPaths': ['a'], 'dstPath': 'no/such'},
+            status=httplib.NOT_FOUND)
+        self.post(
+            path,
+            {
+                'action': 'mv',
+                'srcPaths': ['no/such', 'static/hello.txt'],
+                'dstPath': '',
+            },
+            status=httplib.BAD_REQUEST)
+        self.post(path, {'action': 'rm', 'paths': ['static']})
+        self.assertEqual(self.get(path), {'a': {}, 'hello.txt': None})
+        self.get(path + 'no/such', status=httplib.NOT_FOUND)
+        self.put(path + 'no/such', '', status=httplib.NOT_FOUND)
+        self.get(path + 'a', status=httplib.BAD_REQUEST)
+        self.put(path + 'a', '', status=httplib.BAD_REQUEST)
+        self.post(path, {'action': 'bad'}, status=httplib.BAD_REQUEST)
