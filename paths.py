@@ -4,7 +4,7 @@ import os.path
 import os
 
 from settings import DEBUG
-from utils import write_file
+from utils import write_file, touch_file, SharedLock, ExclusiveLock
 
 
 ANONYM_PREFIX = 'anonym'
@@ -16,7 +16,7 @@ PATSAK_INIT_SQL_PATH = os.path.dirname(CHATLANIAN_PATH) + '/patsak/init.sql'
 CHATLANIAN_INIT_SQL_PATH = CHATLANIAN_PATH + '/init.sql'
 
 
-class Path(str):
+class DirPath(str):
     child_class = str
 
     def __getitem__(self, name):
@@ -31,40 +31,53 @@ def _child(name, cls=str):
     return result
 
 
-class DraftsPath(Path):
+class LockPath(str):
+    def acquire_shared(self):
+        return SharedLock(self)
+
+    def acquire_exclusive(self):
+        return ExclusiveLock(self)
+
+
+class LocksPath(DirPath):
+    child_class = LockPath
+    domains = _child('!domains', LockPath)
+
+
+class DraftsPath(DirPath):
     curr = _child('curr')
     next = _child('next')
 
 
-class AppPath(Path):
+class AppPath(DirPath):
     name = _child('name')
     code = _child('code')
     git = _child('git')
-    domains = _child('domains', Path)
-    envs = _child('envs', Path)
+    domains = _child('domains', DirPath)
+    envs = _child('envs', DirPath)
 
 
-class AppsPath(Path):
+class AppsPath(DirPath):
     child_class = AppPath
 
 
-class DevPath(Path):
+class DevPath(DirPath):
     config = _child('config')
     rsa_pub = _child('rsa.pub')
     apps = _child('apps', AppsPath)
 
 
-class DevsPath(Path):
+class DevsPath(DirPath):
     child_class = DevPath
 
 
 def setup_paths(root_path):
     global LOCKS_PATH, DRAFTS_PATH, TMP_PATH, DEVS_PATH, DOMAINS_PATH
-    LOCKS_PATH = Path(root_path + '/locks')
+    LOCKS_PATH = LocksPath(root_path + '/locks')
     DRAFTS_PATH = DraftsPath(root_path + '/drafts')
-    TMP_PATH = Path(root_path + '/tmp')
+    TMP_PATH = DirPath(root_path + '/tmp')
     DEVS_PATH = DevsPath(root_path + '/data/devs')
-    DOMAINS_PATH = Path(root_path + '/data/domains')
+    DOMAINS_PATH = DirPath(root_path + '/data/domains')
 
 
 setup_paths(
@@ -83,9 +96,8 @@ def create_paths():
     ):
         if not os.path.isdir(path):
             os.makedirs(path)
-    if not os.path.isfile(dev_path.config):
-        write_file(dev_path.config, '{}')
-    if not os.path.isfile(app_path.name):
-        write_file(app_path.name, SAMPLE_NAME)
+    touch_file(LOCKS_PATH.domains)
+    write_file(dev_path.config, '{}')
+    write_file(app_path.name, SAMPLE_NAME)
     if not os.path.islink(app_path.code):
         os.symlink(SAMPLE_PATH, app_path.code)

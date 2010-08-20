@@ -1,6 +1,5 @@
 # (c) 2010 by Anton Korenyushkin
 
-import fcntl
 import httplib
 
 from piston.resource import Resource as PistonResource
@@ -38,13 +37,13 @@ class Resource(PistonResource):
                     request.is_anonymous = True
             request.is_half_anonymous = not request.is_anonymous
         if not request.is_anonymous:
-            f = open(LOCKS_PATH[request.dev_name])
-            fcntl.flock(
-                f, fcntl.LOCK_SH if request.method == 'GET' else fcntl.LOCK_EX)
+            lock_path = LOCKS_PATH[request.dev_name]
+            lock = (lock_path.acquire_shared() if request.method == 'GET' else
+                    lock_path.acquire_exclusive())
         else:
-            f = None
+            lock = None
         try:
             return PistonResource.__call__(self, request, *args, **kwargs)
         finally:
-            if f:
-                f.close()
+            if lock:
+                lock.release()

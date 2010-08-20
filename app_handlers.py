@@ -1,16 +1,20 @@
 # (c) 2010 by Anton Korenyushkin
 
+from __future__ import with_statement
+import re
 import os
 import shutil
 import httplib
 
+import simplejson as json
 from piston.handler import BaseHandler
+from piston.utils import require_mime
 from django.http import HttpResponse
 from django.db import connection, transaction
 
 from error import Error
 from utils import check_name, read_file, write_file, get_schema_name
-from paths import TMP_PATH, DEVS_PATH
+from paths import LOCKS_PATH, TMP_PATH, DEVS_PATH, DOMAINS_PATH
 from managers import CREATE_SCHEMA_SQL
 
 
@@ -107,4 +111,59 @@ class EnvHandler(BaseHandler):
         connection.cursor().execute(
             'DROP SCHEMA "%s" CASCADE'
             % get_schema_name(request.dev_name, app_name, env_name))
+        return HttpResponse()
+
+
+_DOMAIN_RE = re.compile(r'^(?:[a-z0-9](?:-*[a-z0-9])*\.)+[a-z]+$')
+_AKSHELL_SUFFIX = '.akshell.com'
+
+
+class DomainsHandler(BaseHandler):
+    allowed_methods = ('GET', 'PUT')
+
+    @_getting_app_path
+    def get(self, request, app_name, app_path):
+        return HttpResponse(
+            read_file(app_path.domains), 'application/json; charset=utf-8')
+
+    @require_mime('json')
+    @_getting_app_path
+    def put(self, request, app_name, app_path):
+        domains_lower = set(json.loads(read_file(app_path.domains).lower()))
+        new_domains = []
+        new_domains_lower = set()
+        has_akshell = False
+        with LOCKS_PATH.domains.acquire_exclusive():
+            for new_domain in request.data:
+                new_domain_lower = new_domain.lower()
+                if new_domain_lower in new_domains_lower:
+                    continue
+                if not _DOMAIN_RE.match(new_domain_lower):
+                    raise Error(
+                        '"%s" is not a valid domain name.' % new_domain, '''\
+Domain name must consist of two or more parts separated by dots. \
+Each part must consist of Latin letters, digits, and hyphens; \
+it must not start or end with a hyphen.''')
+                if new_domain_lower.endswith(_AKSHELL_SUFFIX):
+                    if has_akshell:
+                        raise Error(
+                            'Only one akshell.com subdomain is provided.')
+                    has_akshell = True
+                    if new_domain_lower.count('.', 0, -len(_AKSHELL_SUFFIX)):
+                        raise Error('''\
+Name of akshell.com subdomain must not contain dots.''')
+                if (new_domain_lower not in domains_lower
+                    and os.path.exists(DOMAINS_PATH[new_domain_lower])):
+                    raise Error(
+                        ('The domain "%s" is bound to other application.'
+                         % new_domain),
+                        'Please choose another domain.')
+                new_domains.append(new_domain)
+                new_domains_lower.add(new_domain_lower)
+            schema_name = get_schema_name(request.dev_name, app_name)
+            for new_domain_lower in new_domains_lower.difference(domains_lower):
+                write_file(DOMAINS_PATH[new_domain_lower], schema_name)
+            for old_domain_lower in domains_lower.difference(new_domains_lower):
+                os.remove(DOMAINS_PATH[old_domain_lower])
+        write_file(app_path.domains, json.dumps(new_domains))
         return HttpResponse()

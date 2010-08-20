@@ -27,6 +27,9 @@ class BaseTest(TestCase):
                 status=httplib.OK):
         if not path.startswith('/'):
             path = '/' + path
+        if not isinstance(data, str):
+            data = json.dumps(data)
+            content_type = 'application/json'
         parsed = urlparse(path)
         request = {
             'REQUEST_METHOD': method,
@@ -51,9 +54,6 @@ class BaseTest(TestCase):
         return self.request('GET', path, status=status)
 
     def post(self, path, data='', content_type=None, status=httplib.OK):
-        if not isinstance(data, str):
-            data = json.dumps(data)
-            content_type = 'application/json'
         return self.request('POST', path, data, content_type, status)
 
     def put(self, path, data='', content_type=None, status=httplib.OK):
@@ -133,7 +133,7 @@ class DevTest(BaseTest):
 
     def test_config(self):
         self.assertEqual(self.get('config'), {})
-        self.put('config', '{"x":42}', 'application/json')
+        self.put('config', {'x': 42})
         self.assertEqual(self.get('config'), {'x': 42})
         self.put('config', 'bad', 'application/json', httplib.BAD_REQUEST)
         self.put('config', '<x>42</x>', 'text/xml', httplib.BAD_REQUEST)
@@ -186,3 +186,18 @@ class AppTest(BaseTest):
             'apps/blog/envs/no-such', {'name': 'xxx'}, status=httplib.NOT_FOUND)
         self.post('apps/blog/envs/test', {'name': 'Debug'})
         self.assertEqual(self.get('apps/blog/envs/'), ['Debug'])
+
+    def test_domains(self):
+        path = 'apps/blog/domains'
+        self.assertEqual(self.get(path), [])
+        self.put(path, ['blog.akshell.com', 'MyBlog.com', 'myblog.com'])
+        self.assertEqual(self.get(path), ['blog.akshell.com', 'MyBlog.com'])
+        self.put(path, ['Blog.akshell.com', 'yo.wuzzup.com', '111.ru'])
+        self.put(path, ['bad!'], status=httplib.BAD_REQUEST)
+        self.put(
+            path, ['1.akshell.com', '2.akshell.com'],
+            status=httplib.BAD_REQUEST)
+        self.put(path, ['1.2.akshell.com'], status=httplib.BAD_REQUEST)
+        self.post('apps/', {'name': 'Forum'}, status=httplib.CREATED)
+        self.put('apps/forum/domains', ['forum.akshell.com'])
+        self.put(path, ['forum.akshell.com'], status=httplib.BAD_REQUEST)

@@ -8,7 +8,7 @@ import shutil
 from django.db import connection, transaction
 
 from error import Error
-from utils import read_file, write_file, get_schema_name
+from utils import read_file, write_file, touch_file, get_schema_name
 from paths import (
     SAMPLE_PATH, ANONYM_PREFIX, SAMPLE_NAME, LOCKS_PATH, DRAFTS_PATH, DEVS_PATH)
 
@@ -31,9 +31,9 @@ def create_app(dev_name, app_name):
     write_file(app_path.name, app_name)
     shutil.copytree(SAMPLE_PATH, app_path.code)
     os.mkdir(app_path.git)
-    os.mkdir(app_path.domains)
     os.mkdir(app_path.envs)
     write_file(app_path.envs['debug'], 'debug')
+    write_file(app_path.domains, '[]')
     cmd = ['git', '--work-tree', app_path.code, '--git-dir', app_path.git]
     Popen(cmd + ['init', '--quiet']).wait()
     Popen(cmd + ['add', '.']).wait()
@@ -52,5 +52,5 @@ def create_dev(dev_name=None):
     dev_name = dev_name or ANONYM_PREFIX + draft_name
     os.rename(DRAFTS_PATH[draft_name], DEVS_PATH[dev_name])
     create_app(dev_name, SAMPLE_NAME)
-    open(LOCKS_PATH[dev_name], 'w').close()
+    touch_file(LOCKS_PATH[dev_name])
     return dev_name

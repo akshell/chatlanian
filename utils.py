@@ -2,6 +2,7 @@
 
 from __future__ import with_statement
 import re
+import fcntl
 
 from error import Error
 
@@ -32,8 +33,35 @@ def write_file(path, data):
         f.write(data)
 
 
+def touch_file(path):
+    open(path, 'w').close()
+
+
 def get_schema_name(dev_name, app_name, env_name=None):
     schema_name = dev_name + ':' + app_name
     if env_name:
         schema_name += ':' + env_name
     return schema_name.lower()
+
+
+class BaseLock(object):
+    def __init__(self, path):
+        self._file = open(path)
+        fcntl.flock(self._file, self.kind)
+
+    def release(self):
+        self._file.close()
+
+    def __enter__(self):
+        pass
+
+    def __exit__(self, cls, value, traceback):
+        self.release()
+
+
+class SharedLock(BaseLock):
+    kind = fcntl.LOCK_SH
+
+
+class ExclusiveLock(BaseLock):
+    kind = fcntl.LOCK_EX
