@@ -10,18 +10,7 @@ from paths import ANONYM_NAME, LOCKS_PATH
 from managers import create_dev
 
 
-class Authentication(object):
-    def is_authenticated(self, request):
-        return True
-
-
-authentication = Authentication()
-
-
 class Resource(PistonResource):
-    def __init__(self, handler):
-        PistonResource.__init__(self, handler, authentication)
-
     def __call__(self, request, *args, **kwargs):
         if request.method != 'GET' and not request.is_ajax():
             return HttpResponse('Non-AJAX request', status=httplib.FORBIDDEN)
