@@ -201,6 +201,7 @@ class AppTest(BaseTest):
         self.post('apps/', {'name': 'Forum'}, status=httplib.CREATED)
         self.put('apps/forum/domains', ['forum.akshell.com'])
         self.put(path, ['forum.akshell.com'], status=httplib.BAD_REQUEST)
+        self.delete('apps/blog/')
 
     def test_code(self):
         path = 'apps/blog/code/'

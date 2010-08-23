@@ -37,6 +37,9 @@ class AppHandler(BaseHandler):
 
     @_getting_app_path
     def delete(self, request, app_name, app_path):
+        domains = json.loads(read_file(app_path.domains).lower())
+        for domain in domains:
+            os.remove(DOMAINS_PATH[domain])
         schema_name = get_schema_name(request.dev_name, app_name)
         tmp_app_path = TMP_PATH[schema_name]
         os.rename(app_path, tmp_app_path)
