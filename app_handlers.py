@@ -285,3 +285,25 @@ class GitHandler(BaseHandler):
         return HttpResponse(
             run_git(request.dev_name, app_name, command, *args),
             'text/plain; charset=utf-8')
+
+
+class PublicHandler(BaseHandler):
+    allowed_methods = ('GET', 'PUT')
+
+    @_getting_app_path
+    def get(self, request, app_name, app_path):
+        return os.path.exists(DEVS_PATH[request.dev_name].libs[app_name])
+
+    @_getting_app_path
+    def put(self, request, app_name, app_path):
+        lib_path = DEVS_PATH[request.dev_name].libs[app_name]
+        if request.data:
+            try:
+                os.symlink(app_path, lib_path)
+            except OSError, error:
+                assert error.errno == errno.EEXIST
+        else:
+            try:
+                os.remove(lib_path)
+            except OSError, error:
+                assert error.errno == errno.ENOENT

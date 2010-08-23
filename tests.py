@@ -291,3 +291,11 @@ class AppTest(BaseTest):
         run('tag -l')
         run('tag -am hello')
 
+    def test_public(self):
+        self.assertEqual(self.get('apps/blog/public'), False)
+        self.put('apps/blog/public', True)
+        self.put('apps/blog/public', True)
+        self.assertEqual(self.get('apps/blog/public'), True)
+        self.put('apps/blog/public', False)
+        self.put('apps/blog/public', False)
+        self.assertEqual(self.get('apps/blog/public'), False)

@@ -25,6 +25,7 @@ class TestRunner(DjangoTestSuiteRunner):
             os.makedirs(draft_path.tablespace)
             tablespace_paths.append(draft_path.tablespace)
             os.mkdir(draft_path.apps)
+            os.mkdir(draft_path.libs)
             write_file(draft_path.config, '{}')
             write_file(draft_path.rsa_pub, 'public key')
         Popen(['sudo', 'chown', 'postgres'] + tablespace_paths).wait()

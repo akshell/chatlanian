@@ -62,6 +62,7 @@ class DevPath(DirPath):
     rsa_pub = _child('rsa.pub')
     ssh = _child('ssh')
     apps = _child('apps', AppsPath)
+    libs = _child('libs', DirPath)
 
 
 class DevsPath(DirPath):
