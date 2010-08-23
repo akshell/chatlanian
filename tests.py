@@ -222,8 +222,8 @@ class AppTest(BaseTest):
                 'paths': ['templates', '/static//base.css', 'no/such'],
             })
         self.assertEqual(self.get(path), {'static': {}, 'main.js': None})
-        self.put(path + 'static/hello.txt', 'hello world')
-        self.assertEqual(self.get(path + '//static/hello.txt'), 'hello world')
+        self.put(path + 'static/hello.txt', 'Hello world')
+        self.assertEqual(self.get(path + '//static/hello.txt'), 'Hello world')
         self.post(
             path, {'action': 'mkdir', 'path': 'a/b/c'}, status=httplib.CREATED)
         self.post(
@@ -264,3 +264,29 @@ class AppTest(BaseTest):
         self.get(path + 'a', status=httplib.BAD_REQUEST)
         self.put(path + 'a', '', status=httplib.BAD_REQUEST)
         self.post(path, {'action': 'bad'}, status=httplib.BAD_REQUEST)
+
+    def test_git(self):
+        def run(command, valid=True):
+            return self.post(
+                'apps/blog/git',
+                {'command': command},
+                status=httplib.OK if valid else httplib.BAD_REQUEST)
+        run('help')
+        run('help push')
+        run('help clone', False)
+        run('init xxx', False)
+        run('remote add origin gopher://example.com', False)
+        run('push ../bad/path', False)
+        run('clean --bad', False)
+        self.assert_('Initial commit.' in run('log'))
+        self.put('apps/blog/code/static/hello.txt', 'Hello world')
+        self.assert_('static/hello.txt' in run('status'))
+        run('add static/hello.txt')
+        run('commit -m "Hello git!"')
+        full_log = run('log -u -n1')
+        self.assert_('Hello git' in full_log)
+        self.assert_('Hello world' in full_log)
+        run('tag -a', False)
+        run('tag -l')
+        run('tag -am hello')
+

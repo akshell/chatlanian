@@ -18,6 +18,7 @@ from error import Error
 from utils import check_name, read_file, write_file, get_schema_name
 from paths import LOCKS_PATH, TMP_PATH, DEVS_PATH, DOMAINS_PATH
 from managers import CREATE_SCHEMA_SQL
+from git import parse_git_command, run_git
 
 
 def _getting_app_path(func):
@@ -270,3 +271,14 @@ class FileHandler(BaseHandler):
                 Error('The folder "%s" doesn\'t exist.' % '/'.join(parts[:-1]),
                       status=httplib.NOT_FOUND))
         return HttpResponse()
+
+
+class GitHandler(BaseHandler):
+    allowed_methods = ('POST')
+
+    @_getting_app_path
+    def post(self, request, app_name, app_path):
+        command, args = parse_git_command(request.user, request.data['command'])
+        return HttpResponse(
+            run_git(request.dev_name, app_name, command, *args),
+            'text/plain; charset=utf-8')
