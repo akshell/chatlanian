@@ -44,11 +44,6 @@ class LocksPath(DirPath):
     domains = _child('!domains', LockPath)
 
 
-class DraftsPath(DirPath):
-    curr = _child('curr')
-    next = _child('next')
-
-
 class AppPath(DirPath):
     name = _child('name')
     code = _child('code')
@@ -62,6 +57,7 @@ class AppsPath(DirPath):
 
 
 class DevPath(DirPath):
+    tablespace = _child('tablespace')
     config = _child('config')
     rsa = _child('rsa')
     rsa_pub = _child('rsa.pub')
@@ -71,6 +67,12 @@ class DevPath(DirPath):
 
 class DevsPath(DirPath):
     child_class = DevPath
+
+
+class DraftsPath(DirPath):
+    child_class = DevPath
+    curr = _child('curr', DevPath)
+    next = _child('next', DevPath)
 
 
 def setup_paths(root_path):
