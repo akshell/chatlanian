@@ -59,7 +59,6 @@ class AppsPath(DirPath):
 class DevPath(DirPath):
     tablespace = _child('tablespace')
     config = _child('config')
-    rsa = _child('rsa')
     rsa_pub = _child('rsa.pub')
     ssh = _child('ssh')
     apps = _child('apps', AppsPath)

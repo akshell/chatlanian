@@ -50,11 +50,6 @@ def create_dev(dev_name=None):
     dev_name = dev_name or ANONYM_PREFIX + draft_name
     dev_path = DEVS_PATH[dev_name]
     os.rename(DRAFTS_PATH[draft_name], dev_path)
-    write_file(dev_path.ssh, '''\
-#!/bin/bash
-exec /usr/bin/ssh -i "%s" "$@"
-''' % dev_path.rsa)
-    os.chmod(dev_path.ssh, 0544)
     create_app(dev_name, SAMPLE_NAME)
     touch_file(LOCKS_PATH[dev_name])
     return dev_name
