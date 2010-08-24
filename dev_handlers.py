@@ -41,11 +41,9 @@ class AppsHandler(BaseHandler):
 
     def get(self, request):
         apps_path = DEVS_PATH[request.dev_name].apps
-        lower_names = os.listdir(apps_path)
-        lower_names.sort()
         return [
             read_file(apps_path[lower_name].name)
-            for lower_name in lower_names
+            for lower_name in sorted(os.listdir(apps_path))
         ]
 
     def post(self, request):

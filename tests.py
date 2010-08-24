@@ -299,3 +299,51 @@ class AppTest(BaseTest):
         self.put('apps/blog/public', False)
         self.put('apps/blog/public', False)
         self.assertEqual(self.get('apps/blog/public'), False)
+
+
+class LibTest(BaseTest):
+    def setUp(self):
+        BaseTest.setUp(self)
+        self.post(
+            'signup',
+            {'name': 'bob', 'email': 'bob@xxx.com', 'password': 'xxx'},
+            status=httplib.CREATED)
+        self.post('apps/', {'name': 'Lib'}, status=httplib.CREATED)
+        self.put('apps/lib/public', True)
+        self.put('apps/lib/code/hello.txt', 'Hello world')
+        for command in (
+            'tag -am "First tag" xxx',
+            'add hello.txt',
+            'commit -m "Second commit."',
+            'branch xxx',
+        ):
+            self.post('apps/lib/git', {'command': command})
+
+    def test_lib(self):
+        self.assertEqual(self.get('libs/bob/'), ['hello-world', 'Lib'])
+        self.get('libs/no-such-dev/', status=httplib.NOT_FOUND)
+        self.assertEqual(self.get('libs/bob/lib/'), ['HEAD', 'master', 'xxx'])
+        self.get('libs/bob/no-such-lib/', status=httplib.NOT_FOUND)
+        self.assertEqual(
+            self.get('libs/bob/lib/master/'),
+            {
+                'templates': {
+                    'index.html': None,
+                    'base.html': None,
+                    'error.html': None,
+                },
+                'static': {'base.css': None},
+                'hello.txt': None,
+                'main.js': None,
+            })
+        self.get('libs/bob/lib/no-such-version/', status=httplib.NOT_FOUND)
+        self.assertEqual(
+            self.get('libs/bob/lib/HEAD/hello.txt'), 'Hello world')
+        self.get('libs/bob/lib/xxx/static/base.css')
+        self.get('libs/bob/lib/master/main.js')
+        self.get('libs/bob/lib/xxx/hello.txt', status=httplib.NOT_FOUND)
+        self.get('libs/bob/lib/HEAD/main.js/no-such', status=httplib.NOT_FOUND)
+        self.get('libs/bob/lib/master//main.js', status=httplib.NOT_FOUND)
+        self.get('libs/bob/lib/xxx/templates', status=httplib.BAD_REQUEST)
+        self.client.logout()
+        self.assertEqual(self.get('libs/bob/'), ['Lib'])

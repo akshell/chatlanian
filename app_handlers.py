@@ -176,11 +176,11 @@ Name of akshell.com subdomain must not contain dots.''')
 
 
 def _traverse(path):
-    if not os.path.isdir(path):
-        return None
     result = {}
     for name in os.listdir(path):
-        result[name] = _traverse(path + '/' + name)
+        child_path = path + '/' + name
+        result[name] = (
+            _traverse(child_path) if os.path.isdir(child_path) else None)
     return result
 
 
