@@ -445,11 +445,9 @@ Tag creation options
 
 Tag listing options
     --contains <commit>   print only tags that contain the commit
-''')('-a',
-     '-f')
-    ('-l',
-     '-d', action='store_true', dest='correct')
-    ('-m', nargs=1, action='store', dest='correct')
+''')('-f', '-l', '-d')
+    ('-a', action='store_true')
+    ('-m', nargs=1, action='store')
     ('-n', nargs='?'),
 }
 
@@ -536,8 +534,8 @@ def parse_git_command(user, string):
         if namespace.pos and namespace.pos[0] == 'add':
             _check_url(namespace.pos[-1])
     elif command == 'tag':
-        if not namespace.correct:
-            raise Error('The -m option is required for tag creation.')
+        if namespace.a and namespace.m is None:
+            raise Error('The -m option is required if -a is used.')
     return command, args
 
 

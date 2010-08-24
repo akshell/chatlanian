@@ -287,9 +287,10 @@ class AppTest(BaseTest):
         full_log = run('log -u -n1')
         self.assert_('Hello git' in full_log)
         self.assert_('Hello world' in full_log)
-        run('tag -a', False)
+        run('tag -a bad', False)
         run('tag -l')
         run('tag -am hello')
+        run('tag hi')
 
     def test_public(self):
         self.assertEqual(self.get('apps/blog/public'), False)
