@@ -1,10 +1,10 @@
 # (c) 2010 by Anton Korenyushkin
 
 from __future__ import with_statement
+from httplib import CREATED, NOT_FOUND
 import re
 import os
 import shutil
-import httplib
 import errno
 import mimetypes
 
@@ -26,8 +26,7 @@ def _getting_app_path(func):
         app_path = DEVS_PATH[request.dev_name].apps[app_name]
         if not os.path.exists(app_path):
             raise Error(
-                'The app "%s" doesn\'t exist.' % app_name,
-                status=httplib.NOT_FOUND)
+                'The app "%s" doesn\'t exist.' % app_name, status=NOT_FOUND)
         return func(self, request, app_name, app_path=app_path, **kwargs)
     return result
 
@@ -77,14 +76,13 @@ class EnvsHandler(BaseHandler):
             (get_schema_name(request.dev_name, app_name, env_name),))
         transaction.commit()
         write_file(env_path, env_name)
-        return HttpResponse(status=httplib.CREATED)
+        return HttpResponse(status=CREATED)
 
 
 def _check_env_exists(env_name, env_path):
     if not os.path.exists(env_path):
         raise Error(
-            'The environment "%s" doesn\'t exist.' % env_name,
-            status=httplib.NOT_FOUND)
+            'The environment "%s" doesn\'t exist.' % env_name, status=NOT_FOUND)
 
 
 class EnvHandler(BaseHandler):
@@ -212,7 +210,7 @@ class CodeHandler(BaseHandler):
                 assert error.errno == errno.EEXIST
                 raise Error('The entry "%s" already exists.' % path,
                             'Please choose another name.')
-            return HttpResponse(status=httplib.CREATED)
+            return HttpResponse(status=CREATED)
         if action == 'rm':
             paths = request.data['paths']
             for path in paths:
@@ -232,7 +230,7 @@ class CodeHandler(BaseHandler):
             dst_prefix = prefix + dst_path + '/'
             if not os.path.isdir(dst_prefix):
                 raise Error('The folder "%s" doesn\'t exist.' % dst_path,
-                            status=httplib.NOT_FOUND)
+                            status=NOT_FOUND)
             failed_paths = []
             for src_path, src_name in zip(src_paths, src_names):
                 try:
@@ -259,7 +257,7 @@ class FileHandler(BaseHandler):
             raise (Error('"%s" is a folder.' % path)
                    if error.errno == errno.EISDIR else
                    Error('The file "%s" doesn\'t exist.' % path,
-                         status=httplib.NOT_FOUND))
+                         status=NOT_FOUND))
         return HttpResponse(content, mimetypes.guess_type(path)[0])
 
     @_getting_app_path
@@ -272,7 +270,7 @@ class FileHandler(BaseHandler):
                 Error('"%s" is a folder.' % path)
                 if error.errno == errno.EISDIR else
                 Error('The folder "%s" doesn\'t exist.' % '/'.join(parts[:-1]),
-                      status=httplib.NOT_FOUND))
+                      status=NOT_FOUND))
         return HttpResponse()
 
 

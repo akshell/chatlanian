@@ -1,6 +1,6 @@
 # (c) 2010 by Anton Korenyushkin
 
-import httplib
+from httplib import CREATED
 import os
 import shutil
 
@@ -55,7 +55,7 @@ class SignupHandler(BaseHandler):
             create_dev(name)
         user.backend = 'chatlanian.auth_backend.AuthBackend'
         auth.login(request, user)
-        return HttpResponse(status=httplib.CREATED)
+        return HttpResponse(status=CREATED)
 
 
 class LoginHandler(BaseHandler):

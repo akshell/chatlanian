@@ -1,6 +1,6 @@
 # (c) 2010 by Anton Korenyushkin
 
-import httplib
+from httplib import FORBIDDEN
 
 from piston.resource import Resource as PistonResource
 from django.http import HttpResponse
@@ -19,7 +19,7 @@ class Resource(PistonResource):
 
     def __call__(self, request, *args, **kwargs):
         if request.method != 'GET' and not request.is_ajax():
-            return HttpResponse('Non-AJAX request', status=httplib.FORBIDDEN)
+            return HttpResponse('Non-AJAX request', status=FORBIDDEN)
         request.is_anonymous = request.is_half_anonymous = False
         if request.user.is_authenticated():
             request.dev_name = request.user.username

@@ -1,7 +1,7 @@
 # (c) 2010 by Anton Korenyushkin
 
+from httplib import NOT_FOUND
 import os.path
-import httplib
 import mimetypes
 
 from piston.handler import BaseHandler
@@ -20,8 +20,7 @@ def _get_libs_path(dev_name, owner_name):
         return owner_path.apps
     if not os.path.exists(owner_path):
         raise Error(
-            'The developer "%s" doesn\'t exist.' % owner_name,
-            status=httplib.NOT_FOUND)
+            'The developer "%s" doesn\'t exist.' % owner_name, status=NOT_FOUND)
     return owner_path.libs
 
 
@@ -43,7 +42,7 @@ def _get_repo(dev_name, owner_name, lib_name):
     except NotGitRepository:
         raise Error(
             'The library "%s/%s" doesn\'t exist.' % (owner_name, lib_name),
-            status=httplib.NOT_FOUND)
+            status=NOT_FOUND)
 
 
 _TAG_PREFIX = 'refs/tags/'
@@ -77,8 +76,7 @@ def _get_tree(repo, version):
             obj = repo.get_object(obj.object[1])
         if obj.type_name == 'commit':
             return repo.get_object(obj.tree)
-    raise Error(
-        'The version "%s" doesn\'t exist.' % version, status=httplib.NOT_FOUND)
+    raise Error('The version "%s" doesn\'t exist.' % version, status=NOT_FOUND)
 
 
 def _traverse(repo, tree):
@@ -114,8 +112,7 @@ class BlobHandler(BaseHandler):
                     obj = repo.get_object(sha)
                     continue
             raise Error(
-                'The file "%s" doesn\'t exist.' % path,
-                status=httplib.NOT_FOUND)
+                'The file "%s" doesn\'t exist.' % path, status=NOT_FOUND)
         if obj.type_name != 'blob':
             raise Error('"%s" is a folder.' % path)
         return HttpResponse(obj.data, mimetypes.guess_type(path)[0])

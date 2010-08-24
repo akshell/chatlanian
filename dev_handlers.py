@@ -1,7 +1,7 @@
 # (c) 2010 by Anton Korenyushkin
 
+from httplib import CREATED
 import os
-import httplib
 
 from piston.handler import BaseHandler
 from piston.utils import require_mime
@@ -50,4 +50,4 @@ class AppsHandler(BaseHandler):
         name = request.data['name']
         check_name(name)
         create_app(request.dev_name, name)
-        return HttpResponse(status=httplib.CREATED)
+        return HttpResponse(status=CREATED)
