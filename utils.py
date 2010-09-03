@@ -4,11 +4,14 @@ from __future__ import with_statement
 import re
 import fcntl
 
+from django.db import connection
+
 from error import Error
 
 
 NAME_RE = re.compile('^%(w)s(?:%(w)s|-%(w)s)*$' % {'w': '[a-zA-Z0-9]'})
 MAX_NAME_LEN = 30
+NAME_PATTERN = '[a-zA-Z0-9-]{1,%d}' % MAX_NAME_LEN
 
 
 def check_name(name):
@@ -20,7 +23,7 @@ def check_name(name):
     if len(name) > MAX_NAME_LEN:
         raise Error(
             'The name is too long.',
-            'Name length must not exceed %d characters.')
+            'Name length must not exceed %d characters.' % MAX_NAME_LEN)
 
 
 def read_file(path):
@@ -37,11 +40,15 @@ def touch_file(path):
     open(path, 'w').close()
 
 
-def get_schema_name(dev_name, app_name, env_name=None):
-    schema_name = dev_name + ':' + app_name
+def get_id(dev_name, app_name, env_name=None):
+    result = dev_name + ':' + app_name
     if env_name:
-        schema_name += ':' + env_name
-    return schema_name.lower()
+        result += ':' + env_name
+    return result.lower()
+
+
+def execute_sql(query, params=()):
+    connection.cursor().execute(query, params)
 
 
 class BaseLock(object):

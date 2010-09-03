@@ -47,7 +47,7 @@ class AppsHandler(BaseHandler):
         ]
 
     def post(self, request):
-        name = request.data['name']
-        check_name(name)
-        create_app(request.dev_name, name)
+        app_name = request.data['name']
+        check_name(app_name)
+        create_app(request.dev_name, app_name)
         return HttpResponse(status=CREATED)

@@ -63,6 +63,7 @@ class DevPath(DirPath):
     ssh = _child('ssh')
     apps = _child('apps', AppsPath)
     libs = _child('libs', AppsPath)
+    grantors = _child('grantors', DirPath)
 
 
 class DevsPath(DirPath):
@@ -76,10 +77,12 @@ class DraftsPath(DirPath):
 
 
 def setup_paths(root_path):
-    global LOCKS_PATH, DRAFTS_PATH, TMP_PATH, DEVS_PATH, DOMAINS_PATH
+    global LOCKS_PATH, DRAFTS_PATH, TMP_PATH, ECILOP_SOCKET_PATH
+    global DEVS_PATH, DOMAINS_PATH
     LOCKS_PATH = LocksPath(root_path + '/locks')
     DRAFTS_PATH = DraftsPath(root_path + '/drafts')
     TMP_PATH = DirPath(root_path + '/tmp')
+    ECILOP_SOCKET_PATH = root_path + '/ecilop.socket'
     DEVS_PATH = DevsPath(root_path + '/data/devs')
     DOMAINS_PATH = DirPath(root_path + '/data/domains')
 

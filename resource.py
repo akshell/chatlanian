@@ -38,12 +38,13 @@ class Resource(PistonResource):
             request.is_half_anonymous = not request.is_anonymous
         if not request.is_anonymous:
             lock_path = LOCKS_PATH[request.dev_name]
-            lock = (lock_path.acquire_shared() if request.method == 'GET' else
-                    lock_path.acquire_exclusive())
+            request.lock = (
+                lock_path.acquire_shared() if request.method == 'GET' else
+                lock_path.acquire_exclusive())
         else:
-            lock = None
+            request.lock = None
         try:
             return PistonResource.__call__(self, request, *args, **kwargs)
         finally:
-            if lock:
-                lock.release()
+            if request.lock:
+                request.lock.release()

@@ -1,19 +1,54 @@
 -- (c) 2010 by Anton Korenyushkin
 
 
-CREATE FUNCTION ak.drop_schemas(main_schema_name text) RETURNS void AS $$
+DELETE FROM ak.meta WHERE schema_name = 'public';
+
+
+CREATE FUNCTION ak.drop_schema(name text) RETURNS void AS $$
+BEGIN
+    DELETE FROM ak.meta WHERE schema_name = name;
+    EXECUTE 'DROP SCHEMA ' || quote_ident(name) || ' CASCADE';
+END
+$$ LANGUAGE plpgsql VOLATILE;
+
+
+CREATE FUNCTION ak.drop_schemas(prefix text) RETURNS void AS $$
 DECLARE
     cmd text;
-    schema_name name;
+    name text;
 BEGIN
-    cmd := 'DROP SCHEMA ' || quote_ident(main_schema_name);
-    FOR schema_name IN
-        SELECT nspname
-        FROM pg_catalog.pg_namespace
-        WHERE nspname LIKE main_schema_name || ':%'
+    DELETE FROM ak.meta WHERE schema_name = prefix;
+    cmd := 'DROP SCHEMA ' || quote_ident(prefix);
+    FOR name IN
+        DELETE FROM ak.meta
+        WHERE schema_name LIKE prefix || ':%'
+        RETURNING *
     LOOP
-        cmd := cmd || ',' || quote_ident(schema_name);
+        cmd := cmd || ',' || quote_ident(name);
     END LOOP;
     EXECUTE cmd || ' CASCADE';
+END
+$$ LANGUAGE plpgsql VOLATILE;
+
+
+CREATE FUNCTION ak.rename_schema(name text, new_name text) RETURNS void AS $$
+BEGIN
+    EXECUTE 'ALTER SCHEMA ' || quote_ident(name) ||
+            ' RENAME TO ' || quote_ident(new_name);
+    UPDATE ak.meta
+    SET schema_name = new_name
+    WHERE schema_name = name;
+END
+$$ LANGUAGE plpgsql VOLATILE;
+
+
+CREATE FUNCTION ak.drop_all_schemas() RETURNS void AS $$
+DECLARE
+    name text;
+BEGIN
+    FOR name IN DELETE FROM ak.meta RETURNING *
+    LOOP
+        EXECUTE 'DROP SCHEMA ' || quote_ident(name) || ' CASCADE';
+    END LOOP;
 END
 $$ LANGUAGE plpgsql VOLATILE;

@@ -3,30 +3,29 @@
 import os
 import os.path
 import shutil
-
-from django.db import connection, transaction
+import socket
 
 from error import Error
-from utils import read_file, write_file, touch_file, get_schema_name
+from utils import read_file, write_file, touch_file, get_id, execute_sql
 from paths import (
-    ANONYM_PREFIX, SAMPLE_NAME, SAMPLE_PATH, LOCKS_PATH, DRAFTS_PATH, DEVS_PATH)
+    ANONYM_PREFIX, SAMPLE_NAME, SAMPLE_PATH, LOCKS_PATH, DRAFTS_PATH,
+    ECILOP_SOCKET_PATH, DEVS_PATH)
 from git import run_git
 
 
 CREATE_SCHEMA_SQL = 'SELECT ak.create_schema(%s);'
 
 
-@transaction.commit_manually
 def create_app(dev_name, app_name):
     app_path = DEVS_PATH[dev_name].apps[app_name]
     if os.path.isdir(app_path):
         raise Error(
             'The app "%s" already exists.' % read_file(app_path.name),
             'App name must be case-insensitively unique.')
-    main_schema_name = get_schema_name(dev_name, app_name)
-    connection.cursor().execute(
-        CREATE_SCHEMA_SQL * 2, (main_schema_name, main_schema_name + ':debug'))
-    transaction.commit()
+    release_schema_name = get_id(dev_name, app_name)
+    execute_sql(
+        CREATE_SCHEMA_SQL * 2,
+        (release_schema_name, release_schema_name + ':debug'))
     os.mkdir(app_path)
     write_file(app_path.name, app_name)
     shutil.copytree(SAMPLE_PATH, app_path.code)
@@ -50,6 +49,34 @@ def create_dev(dev_name=None):
     dev_name = dev_name or ANONYM_PREFIX + draft_name
     dev_path = DEVS_PATH[dev_name]
     os.rename(DRAFTS_PATH[draft_name], dev_path)
-    create_app(dev_name, SAMPLE_NAME)
+    os.symlink('../apps', dev_path.grantors[dev_name])
     touch_file(LOCKS_PATH[dev_name])
+    execute_sql(
+        'CREATE TABLESPACE "%s" LOCATION \'%s\''
+        % (dev_name.lower(), dev_path.tablespace))
+    create_app(dev_name, SAMPLE_NAME)
     return dev_name
+
+
+def send_to_ecilop(header, body=None):
+    assert len(header) < 128
+    sock = socket.socket(socket.AF_UNIX)
+    sock.connect(ECILOP_SOCKET_PATH)
+    sock.sendall(header + ' ' * (128 - len(header)) + (body or ''))
+    if body is None:
+        sock.close()
+        return
+    sock.shutdown(socket.SHUT_WR)
+    parts = []
+    while True:
+        part = sock.recv(8192)
+        if part:
+            parts.append(part)
+        else:
+            break
+    sock.close()
+    return ''.join(parts)
+
+
+def stop_patsaks(host_id):
+    send_to_ecilop('STOP ' + host_id)

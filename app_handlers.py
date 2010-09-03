@@ -12,12 +12,11 @@ import simplejson as json
 from piston.handler import BaseHandler
 from piston.utils import require_mime
 from django.http import HttpResponse
-from django.db import connection, transaction
 
 from error import Error
-from utils import check_name, read_file, write_file, get_schema_name
+from utils import check_name, read_file, write_file, get_id, execute_sql
 from paths import LOCKS_PATH, TMP_PATH, DEVS_PATH, DOMAINS_PATH
-from managers import CREATE_SCHEMA_SQL
+from managers import CREATE_SCHEMA_SQL, send_to_ecilop, stop_patsaks
 from git import parse_git_command, run_git
 
 
@@ -36,22 +35,32 @@ class AppHandler(BaseHandler):
 
     @_getting_app_path
     def delete(self, request, app_name, app_path):
+        app_id = get_id(request.dev_name, app_name)
+        stop_patsaks(app_id)
         domains = json.loads(read_file(app_path.domains).lower())
         for domain in domains:
             os.remove(DOMAINS_PATH[domain])
-        schema_name = get_schema_name(request.dev_name, app_name)
-        tmp_app_path = TMP_PATH[schema_name]
+        tmp_app_path = TMP_PATH[app_id]
         os.rename(app_path, tmp_app_path)
         shutil.rmtree(tmp_app_path)
-        connection.cursor().execute(
-            'SELECT ak.drop_schemas(%s)', (schema_name,))
+        execute_sql('SELECT ak.drop_schemas(%s)', (app_id,))
+        return HttpResponse()
 
 
-def _check_env_does_not_exist(env_path):
+_RELEASE_ENV_NAME = 'release'
+
+
+def _get_absent_env_path(app_path, env_name):
+    if env_name.lower() == _RELEASE_ENV_NAME:
+        raise Error(
+            'The environment name "%s" is reserved.' % _RELEASE_ENV_NAME,
+            'Please choose another name.')
+    env_path = app_path.envs[env_name]
     if os.path.exists(env_path):
         raise Error(
             'The environment "%s" already exists.' % read_file(env_path),
             'Environment name must be case-insensitively unique.')
+    return env_path
 
 
 class EnvsHandler(BaseHandler):
@@ -64,57 +73,70 @@ class EnvsHandler(BaseHandler):
             for lower_name in sorted(os.listdir(app_path.envs))
         ]
 
-    @transaction.commit_manually
     @_getting_app_path
     def post(self, request, app_name, app_path):
         env_name = request.data['name']
         check_name(env_name)
-        env_path = app_path.envs[env_name]
-        _check_env_does_not_exist(env_path)
-        connection.cursor().execute(
-            CREATE_SCHEMA_SQL,
-            (get_schema_name(request.dev_name, app_name, env_name),))
-        transaction.commit()
+        env_path = _get_absent_env_path(app_path, env_name)
+        execute_sql(
+            CREATE_SCHEMA_SQL, (get_id(request.dev_name, app_name, env_name),))
         write_file(env_path, env_name)
         return HttpResponse(status=CREATED)
 
 
-def _check_env_exists(env_name, env_path):
+def _get_existent_env_path(app_path, env_name):
+    env_path = app_path.envs[env_name]
     if not os.path.exists(env_path):
         raise Error(
             'The environment "%s" doesn\'t exist.' % env_name, status=NOT_FOUND)
+    return env_path
 
 
 class EnvHandler(BaseHandler):
     allowed_methods = ('POST', 'DELETE')
 
-    @transaction.commit_manually
     @_getting_app_path
     def post(self, request, app_name, env_name, app_path):
-        env_path = app_path.envs[env_name]
-        _check_env_exists(env_name, env_path)
-        new_env_name = request.data['name']
-        check_name(new_env_name)
-        new_env_path = app_path.envs[new_env_name]
-        _check_env_does_not_exist(new_env_path)
-        write_file(new_env_path, new_env_name)
-        schema_prefix = get_schema_name(request.dev_name, app_name) + ':'
-        connection.cursor().execute(
-            'ALTER SCHEMA "%s" RENAME TO "%s"'
-            % (schema_prefix + env_name.lower(),
-               schema_prefix + new_env_name.lower()))
-        transaction.commit()
-        os.remove(env_path)
-        return HttpResponse()
+        action = request.data['action']
+        if action == 'rename':
+            env_path = _get_existent_env_path(app_path, env_name)
+            new_env_name = request.data['name']
+            check_name(new_env_name)
+            new_env_path = _get_absent_env_path(app_path, new_env_name)
+            stop_patsaks(get_id(request.dev_name, app_name, env_name))
+            write_file(new_env_path, new_env_name)
+            schema_prefix = get_id(request.dev_name, app_name) + ':'
+            execute_sql(
+                'SELECT ak.rename_schema(%s, %s)',
+                (schema_prefix + env_name.lower(),
+                 schema_prefix + new_env_name.lower()))
+            os.remove(env_path)
+            return HttpResponse()
+        if action == 'eval':
+            request.lock.release()
+            request.lock = None
+            if env_name == _RELEASE_ENV_NAME:
+                env_name = None
+            response = send_to_ecilop(
+                'EVAL ' + get_id(request.dev_name, app_name, env_name),
+                request.data['expr'])
+            assert response
+            status = response[0]
+            result = response[1:]
+            assert status in ('E', 'F', 'S')
+            if status == 'E':
+                raise Error(result, status=NOT_FOUND)
+            return {'ok': status == 'S', 'result': result}
+        raise Error('Unknown action: "%s"' % action)
 
     @_getting_app_path
     def delete(self, request, app_name, env_name, app_path):
-        env_path = app_path.envs[env_name]
-        _check_env_exists(env_name, env_path)
+        env_path = _get_existent_env_path(app_path, env_name)
+        stop_patsaks(get_id(request.dev_name, app_name, env_name))
         os.remove(env_path)
-        connection.cursor().execute(
-            'DROP SCHEMA "%s" CASCADE'
-            % get_schema_name(request.dev_name, app_name, env_name))
+        execute_sql(
+            'SELECT ak.drop_schema(%s)',
+            (get_id(request.dev_name, app_name, env_name),))
         return HttpResponse()
 
 
@@ -164,9 +186,10 @@ Name of akshell.com subdomain must not contain dots.''')
                         'Please choose another domain.')
                 new_domains.append(new_domain)
                 new_domains_lower.add(new_domain_lower)
-            schema_name = get_schema_name(request.dev_name, app_name)
+            app_id = get_id(request.dev_name, app_name)
+            stop_patsaks(app_id)
             for new_domain_lower in new_domains_lower.difference(domains_lower):
-                write_file(DOMAINS_PATH[new_domain_lower], schema_name)
+                write_file(DOMAINS_PATH[new_domain_lower], app_id)
             for old_domain_lower in domains_lower.difference(new_domains_lower):
                 os.remove(DOMAINS_PATH[old_domain_lower])
         write_file(app_path.domains, json.dumps(new_domains))
@@ -199,6 +222,7 @@ class CodeHandler(BaseHandler):
 
     @_getting_app_path
     def post(self, request, app_name, app_path):
+        stop_patsaks(get_id(request.dev_name, app_name) + ':')
         prefix = app_path.code + '/'
         action = request.data['action']
         if action == 'mkdir':
@@ -262,6 +286,7 @@ class FileHandler(BaseHandler):
 
     @_getting_app_path
     def put(self, request, app_name, app_path, path):
+        stop_patsaks(get_id(request.dev_name, app_name) + ':')
         parts = _check_path(path)
         try:
             write_file(app_path.code + '/' + path, request.raw_post_data)
@@ -280,6 +305,11 @@ class GitHandler(BaseHandler):
     @_getting_app_path
     def post(self, request, app_name, app_path):
         command, args = parse_git_command(request.user, request.data['command'])
+        host_id = get_id(request.dev_name, app_name)
+        if command not in (
+            'commit', 'merge', 'pull', 'rebase', 'reset', 'revert'):
+            host_id += ':'
+        stop_patsaks(host_id)
         return HttpResponse(
             run_git(request.dev_name, app_name, command, *args),
             'text/plain; charset=utf-8')

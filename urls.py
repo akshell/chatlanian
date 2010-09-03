@@ -3,6 +3,7 @@
 from django.conf.urls.defaults import *
 from django.contrib import admin
 
+from utils import NAME_PATTERN
 from resource import Resource
 from auth_handlers import SignupHandler, LoginHandler, LogoutHandler
 from dev_handlers import ConfigHandler, RsaPubHandler, AppsHandler
@@ -20,6 +21,7 @@ urlpatterns = patterns(
     (r'^config$', Resource(ConfigHandler)),
     (r'^rsa\.pub$', Resource(RsaPubHandler)),
     (r'^apps/$', Resource(AppsHandler)),
-    (r'^apps/(?P<app_name>[a-zA-Z0-9-]+)/', include('chatlanian.app_urls')),
-    (r'^libs/(?P<owner_name>[a-zA-Z0-9-]+)/', include('chatlanian.lib_urls')),
+    (r'^apps/(?P<app_name>%s)/' % NAME_PATTERN, include('chatlanian.app_urls')),
+    (r'^libs/(?P<owner_name>%s)/' % NAME_PATTERN,
+     include('chatlanian.lib_urls')),
 )

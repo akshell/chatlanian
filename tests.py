@@ -1,26 +1,35 @@
 # (c) 2010 by Anton Korenyushkin
 
+from subprocess import Popen
 from urlparse import urlparse
 from httplib import OK, CREATED, BAD_REQUEST, FORBIDDEN, NOT_FOUND
 import urllib
 import shutil
+import os
 
 import simplejson as json
 from django.test import TestCase
 from django.test.client import Client, FakePayload
 from django.utils.http import urlencode
+from django.db import connection
 
-from paths import create_paths, LOCKS_PATH, DEVS_PATH, DOMAINS_PATH
+from paths import create_paths, ANONYM_NAME, LOCKS_PATH, DEVS_PATH, DOMAINS_PATH
+from utils import execute_sql
 
 
 class BaseTest(TestCase):
     def setUp(self):
         create_paths()
         self.client = Client()
+        connection._set_isolation_level(0)
 
     def tearDown(self):
+        execute_sql('SELECT ak.drop_all_schemas()')
+        for dev_name in os.listdir(DEVS_PATH):
+            if dev_name != ANONYM_NAME:
+                execute_sql('DROP TABLESPACE "%s"' % dev_name)
+        Popen('sudo rm -r ' + DEVS_PATH, shell=True)
         shutil.rmtree(LOCKS_PATH)
-        shutil.rmtree(DEVS_PATH)
         shutil.rmtree(DOMAINS_PATH)
 
     def request(self, method, path, data='', content_type=None, status=OK):
@@ -169,15 +178,34 @@ class AppTest(BaseTest):
         self.assertEqual(self.get('apps/blog/envs/'), ['debug'])
         self.post('apps/blog/envs/', {'name': 'Test'}, status=CREATED)
         self.assertEqual(self.get('apps/blog/envs/'), ['debug', 'Test'])
-        self.post('apps/blog/envs/debug', {'name': 'test'}, status=BAD_REQUEST)
+        def rename(name, new_name, status):
+            self.post(
+                'apps/blog/envs/' + name,
+                {'action': 'rename', 'name': new_name},
+                status=status)
+        rename('debug', 'test', BAD_REQUEST)
         self.post('apps/blog/envs/', {'name': 'Debug'}, status=BAD_REQUEST)
+        self.post('apps/blog/envs/', {'name': 'Release'}, status=BAD_REQUEST)
         self.delete('apps/blog/envs/Debug')
         self.delete('apps/blog/envs/no-such', status=NOT_FOUND)
         self.assertEqual(self.get('apps/blog/envs/'), ['Test'])
-        self.post('apps/blog/envs/test', {'name': 'bad!'}, status=BAD_REQUEST)
-        self.post('apps/blog/envs/no-such', {'name': 'xxx'}, status=NOT_FOUND)
-        self.post('apps/blog/envs/test', {'name': 'Debug'})
+        rename('test', 'bad!', BAD_REQUEST)
+        rename('no-such', 'xxx', NOT_FOUND)
+        rename('test', 'Debug', OK)
         self.assertEqual(self.get('apps/blog/envs/'), ['Debug'])
+        response = self.post(
+            'apps/blog/envs/release', {'action': 'eval', 'expr': '1'})
+        self.assert_(not response['ok'])
+        self.assert_(response['result'].startswith('RequireError:'))
+        self.put('apps/blog/code/main.js', 'x = 42')
+        response = self.post(
+            'apps/blog/envs/debug', {'action': 'eval', 'expr': 'x'})
+        self.assert_(response['ok'])
+        self.assertEqual(response['result'], '42')
+        self.post(
+            'apps/blog/envs/no-such', {'action': 'eval', 'expr': '1'},
+            status=NOT_FOUND)
+        self.post('apps/blog/envs/debug', {'action': 'bad'}, status=BAD_REQUEST)
 
     def test_domains(self):
         path = 'apps/blog/domains'

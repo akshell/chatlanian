@@ -17,6 +17,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': 'chatlanian',
         'TEST_NAME': 'test-chatlanian',
+        'OPTIONS': {'autocommit': True},
     }
 }
 
