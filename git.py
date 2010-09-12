@@ -6,7 +6,7 @@ import argparse
 from django.utils.text import smart_split, unescape_string_literal
 
 from error import Error
-from paths import DEVS_PATH
+from paths import ROOT
 
 
 class _PassAction(argparse.Action):
@@ -570,7 +570,7 @@ The most commonly used git commands are:
 
 See 'help COMMAND' for more information on a specific command.
 '''
-    dev_path = DEVS_PATH[dev_name]
+    dev_path = ROOT.devs[dev_name]
     app_path = dev_path.apps[app_name]
     process = Popen(
         ['/usr/bin/git', command] + list(args),

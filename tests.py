@@ -13,7 +13,7 @@ from django.test.client import Client, FakePayload
 from django.utils.http import urlencode
 from django.db import connection
 
-from paths import create_paths, ANONYM_NAME, LOCKS_PATH, DEVS_PATH, DOMAINS_PATH
+from paths import ANONYM_NAME, ROOT, create_paths
 from utils import execute_sql
 
 
@@ -25,12 +25,12 @@ class BaseTest(TestCase):
 
     def tearDown(self):
         execute_sql('SELECT ak.drop_all_schemas()')
-        for dev_name in os.listdir(DEVS_PATH):
+        for dev_name in os.listdir(ROOT.devs):
             if dev_name != ANONYM_NAME:
                 execute_sql('DROP TABLESPACE "%s"' % dev_name)
-        Popen('sudo rm -r ' + DEVS_PATH, shell=True)
-        shutil.rmtree(LOCKS_PATH)
-        shutil.rmtree(DOMAINS_PATH)
+        Popen('sudo rm -r ' + ROOT.devs, shell=True)
+        shutil.rmtree(ROOT.locks)
+        shutil.rmtree(ROOT.domains)
 
     def request(self, method, path, data='', content_type=None, status=OK):
         if not path.startswith('/'):

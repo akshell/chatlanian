@@ -19,11 +19,11 @@ TEST_DRAFT_COUNT = 100
 class TestRunner(DjangoTestSuiteRunner):
     def setup_test_environment(self, **kwargs):
         DjangoTestSuiteRunner.setup_test_environment(self, **kwargs)
-        paths.setup_paths(TEST_ROOT_PATH)
+        paths.ROOT = paths.RootPath(TEST_ROOT_PATH)
         paths.create_paths()
         tablespace_paths = []
         for i in range(TEST_DRAFT_COUNT):
-            draft_path = paths.DRAFTS_PATH[str(i)]
+            draft_path = paths.ROOT.drafts[str(i)]
             os.makedirs(draft_path.tablespace)
             tablespace_paths.append(draft_path.tablespace)
             os.mkdir(draft_path.apps)
@@ -32,7 +32,7 @@ class TestRunner(DjangoTestSuiteRunner):
             write_file(draft_path.config, '{}')
             write_file(draft_path.rsa_pub, 'public key')
         Popen(['sudo', 'chown', 'postgres'] + tablespace_paths).wait()
-        os.symlink('0', paths.DRAFTS_PATH.curr)
+        os.symlink('0', paths.ROOT.drafts.curr)
         patsak_config_path = TEST_ROOT_PATH + '/patsak.conf'
         write_file(patsak_config_path, '''\
 lib=%s/../patsak/lib
@@ -40,12 +40,12 @@ db=dbname=%s
 ''' % (paths.CHATLANIAN_PATH, DATABASES['default']['TEST_NAME']))
         self._ecilop_process = Popen(
             [
-                paths.CHATLANIAN_PATH + '/../ecilop/ecilop',
-                '--socket', paths.ECILOP_SOCKET_PATH,
-                '--data', TEST_ROOT_PATH + '/data',
-                '--locks', paths.LOCKS_PATH,
+                paths.ECILOP_EXE_PATH,
+                '--socket', paths.ROOT.ecilop_socket,
+                '--data', paths.ROOT.data,
+                '--locks', paths.ROOT.locks,
                 '--patsak',
-                paths.CHATLANIAN_PATH + '/../patsak/exe/common/patsak',
+                paths.PATSAK_EXE_PATH,
                 '--patsak-config', patsak_config_path,
             ],
             stdout=PIPE)

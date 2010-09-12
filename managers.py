@@ -7,9 +7,8 @@ import socket
 
 from error import Error
 from utils import read_file, write_file, touch_file, get_id, execute_sql
-from paths import (
-    ANONYM_PREFIX, SAMPLE_NAME, SAMPLE_PATH, LOCKS_PATH, DRAFTS_PATH,
-    ECILOP_SOCKET_PATH, DEVS_PATH)
+from paths import ANONYM_PREFIX, SAMPLE_NAME, SAMPLE_PATH, ROOT
+
 from git import run_git
 
 
@@ -17,7 +16,7 @@ CREATE_SCHEMA_SQL = 'SELECT ak.create_schema(%s);'
 
 
 def create_app(dev_name, app_name):
-    app_path = DEVS_PATH[dev_name].apps[app_name]
+    app_path = ROOT.devs[dev_name].apps[app_name]
     if os.path.isdir(app_path):
         raise Error(
             'The app "%s" already exists.' % read_file(app_path.name),
@@ -43,14 +42,14 @@ def create_app(dev_name, app_name):
 
 
 def create_dev(dev_name=None):
-    draft_name = os.readlink(DRAFTS_PATH.curr)
-    os.symlink(str(int(draft_name) + 1), DRAFTS_PATH.next)
-    os.rename(DRAFTS_PATH.next, DRAFTS_PATH.curr)
+    draft_name = os.readlink(ROOT.drafts.curr)
+    os.symlink(str(int(draft_name) + 1), ROOT.drafts.next)
+    os.rename(ROOT.drafts.next, ROOT.drafts.curr)
     dev_name = dev_name or ANONYM_PREFIX + draft_name
-    dev_path = DEVS_PATH[dev_name]
-    os.rename(DRAFTS_PATH[draft_name], dev_path)
+    dev_path = ROOT.devs[dev_name]
+    os.rename(ROOT.drafts[draft_name], dev_path)
     os.symlink('../apps', dev_path.grantors[dev_name])
-    touch_file(LOCKS_PATH[dev_name])
+    touch_file(ROOT.locks[dev_name])
     execute_sql(
         'CREATE TABLESPACE "%s" LOCATION \'%s\''
         % (dev_name.lower(), dev_path.tablespace))
@@ -61,7 +60,7 @@ def create_dev(dev_name=None):
 def send_to_ecilop(header, body=None):
     assert len(header) < 128
     sock = socket.socket(socket.AF_UNIX)
-    sock.connect(ECILOP_SOCKET_PATH)
+    sock.connect(ROOT.ecilop_socket)
     sock.sendall(header + ' ' * (128 - len(header)) + (body or ''))
     if body is None:
         sock.close()

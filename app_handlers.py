@@ -15,14 +15,14 @@ from django.http import HttpResponse
 
 from error import Error
 from utils import check_name, read_file, write_file, get_id, execute_sql
-from paths import LOCKS_PATH, TMP_PATH, DEVS_PATH, DOMAINS_PATH
+from paths import ROOT
 from managers import CREATE_SCHEMA_SQL, send_to_ecilop, stop_patsaks
 from git import parse_git_command, run_git
 
 
 def _getting_app_path(func):
     def result(self, request, app_name, **kwargs):
-        app_path = DEVS_PATH[request.dev_name].apps[app_name]
+        app_path = ROOT.devs[request.dev_name].apps[app_name]
         if not os.path.exists(app_path):
             raise Error(
                 'The app "%s" doesn\'t exist.' % app_name, status=NOT_FOUND)
@@ -39,8 +39,8 @@ class AppHandler(BaseHandler):
         stop_patsaks(app_id)
         domains = json.loads(read_file(app_path.domains).lower())
         for domain in domains:
-            os.remove(DOMAINS_PATH[domain])
-        tmp_app_path = TMP_PATH[app_id]
+            os.remove(ROOT.domains[domain])
+        tmp_app_path = ROOT.tmp[app_id]
         os.rename(app_path, tmp_app_path)
         shutil.rmtree(tmp_app_path)
         execute_sql('SELECT ak.drop_schemas(%s)', (app_id,))
@@ -159,7 +159,7 @@ class DomainsHandler(BaseHandler):
         new_domains = []
         new_domains_lower = set()
         has_akshell = False
-        with LOCKS_PATH.domains.acquire_exclusive():
+        with ROOT.locks.domains.acquire_exclusive():
             for new_domain in request.data:
                 new_domain_lower = new_domain.lower()
                 if new_domain_lower in new_domains_lower:
@@ -179,7 +179,7 @@ it must not start or end with a hyphen.''')
                         raise Error('''\
 Name of akshell.com subdomain must not contain dots.''')
                 if (new_domain_lower not in domains_lower
-                    and os.path.exists(DOMAINS_PATH[new_domain_lower])):
+                    and os.path.exists(ROOT.domains[new_domain_lower])):
                     raise Error(
                         ('The domain "%s" is bound to other application.'
                          % new_domain),
@@ -189,9 +189,9 @@ Name of akshell.com subdomain must not contain dots.''')
             app_id = get_id(request.dev_name, app_name)
             stop_patsaks(app_id)
             for new_domain_lower in new_domains_lower.difference(domains_lower):
-                write_file(DOMAINS_PATH[new_domain_lower], app_id)
+                write_file(ROOT.domains[new_domain_lower], app_id)
             for old_domain_lower in domains_lower.difference(new_domains_lower):
-                os.remove(DOMAINS_PATH[old_domain_lower])
+                os.remove(ROOT.domains[old_domain_lower])
         write_file(app_path.domains, json.dumps(new_domains))
         return HttpResponse()
 
@@ -320,11 +320,11 @@ class PublicHandler(BaseHandler):
 
     @_getting_app_path
     def get(self, request, app_name, app_path):
-        return os.path.exists(DEVS_PATH[request.dev_name].libs[app_name])
+        return os.path.exists(ROOT.devs[request.dev_name].libs[app_name])
 
     @_getting_app_path
     def put(self, request, app_name, app_path):
-        lib_path = DEVS_PATH[request.dev_name].libs[app_name]
+        lib_path = ROOT.devs[request.dev_name].libs[app_name]
         if request.data:
             try:
                 os.symlink(app_path, lib_path)

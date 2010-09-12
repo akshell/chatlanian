@@ -5,7 +5,7 @@ from httplib import FORBIDDEN
 from piston.resource import Resource as PistonResource
 from django.http import HttpResponse
 
-from paths import ANONYM_NAME, LOCKS_PATH
+from paths import ANONYM_NAME, ROOT
 from managers import create_dev
 
 
@@ -37,7 +37,7 @@ class Resource(PistonResource):
                     request.is_anonymous = True
             request.is_half_anonymous = not request.is_anonymous
         if not request.is_anonymous:
-            lock_path = LOCKS_PATH[request.dev_name]
+            lock_path = ROOT.locks[request.dev_name]
             request.lock = (
                 lock_path.acquire_shared() if request.method == 'GET' else
                 lock_path.acquire_exclusive())

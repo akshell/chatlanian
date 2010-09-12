@@ -11,11 +11,11 @@ from django.http import HttpResponse
 
 from error import Error
 from utils import read_file
-from paths import DEVS_PATH
+from paths import ROOT
 
 
 def _get_libs_path(dev_name, owner_name):
-    owner_path = DEVS_PATH[owner_name]
+    owner_path = ROOT.devs[owner_name]
     if owner_name == dev_name:
         return owner_path.apps
     if not os.path.exists(owner_path):

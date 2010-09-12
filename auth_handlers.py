@@ -13,7 +13,7 @@ from django.http import HttpResponse
 
 from error import Error
 from utils import check_name, get_id, execute_sql
-from paths import ANONYM_PREFIX, LOCKS_PATH, DEVS_PATH
+from paths import ANONYM_PREFIX, ROOT
 from managers import create_dev, stop_patsaks
 
 
@@ -49,15 +49,15 @@ class SignupHandler(BaseHandler):
             dev_name, email, request.data['password'])
         user.save()
         if request.is_half_anonymous:
-            old_dev_path = DEVS_PATH[request.dev_name]
+            old_dev_path = ROOT.devs[request.dev_name]
             for app_name in os.listdir(old_dev_path.apps):
                 stop_patsaks(get_id(request.dev_name, app_name))
-            dev_path = DEVS_PATH[dev_name]
+            dev_path = ROOT.devs[dev_name]
             os.rename(old_dev_path, dev_path)
             os.rename(
                 dev_path.grantors[request.dev_name],
                 dev_path.grantors[dev_name])
-            os.rename(LOCKS_PATH[request.dev_name], LOCKS_PATH[dev_name])
+            os.rename(ROOT.locks[request.dev_name], ROOT.locks[dev_name])
             execute_sql('''\
 UPDATE pg_tablespace SET spclocation = %s, spcname = %s WHERE spcname = %s''',
                         (dev_path.tablespace,

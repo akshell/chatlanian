@@ -12,8 +12,12 @@ ANONYM_NAME = ANONYM_PREFIX
 SAMPLE_NAME = 'hello-world'
 CHATLANIAN_PATH = os.path.abspath(os.path.dirname(__file__))
 SAMPLE_PATH = CHATLANIAN_PATH + '/sample'
-PATSAK_INIT_SQL_PATH = os.path.dirname(CHATLANIAN_PATH) + '/patsak/init.sql'
 CHATLANIAN_INIT_SQL_PATH = CHATLANIAN_PATH + '/init.sql'
+PATSAK_PATH = os.path.dirname(CHATLANIAN_PATH) + '/patsak'
+PATSAK_INIT_SQL_PATH = PATSAK_PATH + '/init.sql'
+PATSAK_EXE_PATH = PATSAK_PATH + '/exe/common/patsak'
+ECILOP_PATH = os.path.dirname(CHATLANIAN_PATH) + '/ecilop'
+ECILOP_EXE_PATH = ECILOP_PATH + '/ecilop'
 
 
 class DirPath(str):
@@ -44,7 +48,7 @@ class LocksPath(DirPath):
     domains = _child('!domains', LockPath)
 
 
-class AppPath(DirPath):
+class AppPath(str):
     name = _child('name')
     code = _child('code')
     git = _child('git')
@@ -56,7 +60,7 @@ class AppsPath(DirPath):
     child_class = AppPath
 
 
-class DevPath(DirPath):
+class DevPath(str):
     tablespace = _child('tablespace')
     config = _child('config')
     rsa_pub = _child('rsa.pub')
@@ -76,34 +80,33 @@ class DraftsPath(DirPath):
     next = _child('next', DevPath)
 
 
-def setup_paths(root_path):
-    global LOCKS_PATH, DRAFTS_PATH, TMP_PATH, ECILOP_SOCKET_PATH
-    global DEVS_PATH, DOMAINS_PATH
-    LOCKS_PATH = LocksPath(root_path + '/locks')
-    DRAFTS_PATH = DraftsPath(root_path + '/drafts')
-    TMP_PATH = DirPath(root_path + '/tmp')
-    ECILOP_SOCKET_PATH = root_path + '/ecilop.socket'
-    DEVS_PATH = DevsPath(root_path + '/data/devs')
-    DOMAINS_PATH = DirPath(root_path + '/data/domains')
+class RootPath(str):
+    locks = _child('locks', LocksPath)
+    drafts = _child('drafts', DraftsPath)
+    tmp = _child('tmp', DirPath)
+    ecilop_socket = _child('ecilop.socket')
+    data = _child('data')
+    devs = _child('data/devs', DevsPath)
+    domains = _child('data/domains', DirPath)
 
 
-setup_paths(
+ROOT = RootPath(
     os.path.abspath(os.path.dirname(__file__)) + '/root' if DEBUG else '/ak')
 
 
 def create_paths():
-    dev_path = DEVS_PATH[ANONYM_NAME]
+    dev_path = ROOT.devs[ANONYM_NAME]
     app_path = dev_path.apps[SAMPLE_NAME]
     for path in (
-        LOCKS_PATH,
-        DRAFTS_PATH,
-        TMP_PATH,
-        DOMAINS_PATH,
+        ROOT.locks,
+        ROOT.drafts,
+        ROOT.tmp,
+        ROOT.domains,
         app_path,
     ):
         if not os.path.isdir(path):
             os.makedirs(path)
-    touch_file(LOCKS_PATH.domains)
+    touch_file(ROOT.locks.domains)
     write_file(dev_path.config, '{}')
     write_file(app_path.name, SAMPLE_NAME)
     if not os.path.islink(app_path.code):
