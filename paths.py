@@ -84,6 +84,7 @@ class RootPath(str):
     locks = _child('locks', LocksPath)
     drafts = _child('drafts', DraftsPath)
     tmp = _child('tmp', DirPath)
+    trash = _child('trash', DirPath)
     ecilop_socket = _child('ecilop.socket')
     data = _child('data')
     devs = _child('data/devs', DevsPath)
@@ -101,6 +102,7 @@ def create_paths():
         ROOT.locks,
         ROOT.drafts,
         ROOT.tmp,
+        ROOT.trash,
         ROOT.domains,
         app_path,
     ):

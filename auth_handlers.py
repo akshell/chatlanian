@@ -80,6 +80,11 @@ class LoginHandler(BaseHandler):
             password=request.data['password'])
         if not user or not user.is_active:
             raise Error('Bad user name or password')
+        if request.is_half_anonymous:
+            execute_sql('SELECT ak.drop_schemas(%s)', (request.dev_name,))
+            execute_sql('DROP TABLESPACE "%s"' % request.dev_name)
+            os.rename(ROOT.devs[request.dev_name], ROOT.trash[request.dev_name])
+            os.remove(ROOT.locks[request.dev_name])
         auth.login(request, user)
         return HttpResponse()
 

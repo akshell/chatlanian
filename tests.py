@@ -28,7 +28,7 @@ class BaseTest(TestCase):
         for dev_name in os.listdir(ROOT.devs):
             if dev_name != ANONYM_NAME:
                 execute_sql('DROP TABLESPACE "%s"' % dev_name)
-        Popen('sudo rm -r ' + ROOT.devs, shell=True)
+        Popen('sudo rm -r %s %s' % (ROOT.devs, ROOT.trash), shell=True)
         shutil.rmtree(ROOT.locks)
         shutil.rmtree(ROOT.domains)
 

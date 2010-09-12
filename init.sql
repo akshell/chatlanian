@@ -17,16 +17,15 @@ DECLARE
     cmd text;
     name text;
 BEGIN
-    DELETE FROM ak.meta WHERE schema_name = prefix;
-    cmd := 'DROP SCHEMA ' || quote_ident(prefix);
     FOR name IN
         DELETE FROM ak.meta
-        WHERE schema_name LIKE prefix || ':%'
+        WHERE schema_name = prefix
+        OR schema_name LIKE prefix || ':%'
         RETURNING *
     LOOP
         cmd := cmd || ',' || quote_ident(name);
+        EXECUTE 'DROP SCHEMA ' || quote_ident(name) || ' CASCADE';
     END LOOP;
-    EXECUTE cmd || ' CASCADE';
 END
 $$ LANGUAGE plpgsql VOLATILE;
 
