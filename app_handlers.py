@@ -140,7 +140,16 @@ class EnvHandler(BaseHandler):
         return HttpResponse()
 
 
-_DOMAIN_RE = re.compile(r'^(?:[a-z0-9](?:-*[a-z0-9])*\.)+[a-z]+$')
+def _check_domain_is_free(domain):
+    if os.path.exists(ROOT.domains[domain]):
+        raise Error(
+            'The domain "%s" is bound to other application.' % domain,
+            'Please choose another domain.')
+
+
+_DOMAIN_RE = re.compile(
+    '^(%(p)s\.)?(%(p)s\.%(p)s)$' % {'p': '[a-z0-9](?:-*[a-z0-9])*'})
+
 _AKSHELL_SUFFIX = '.akshell.com'
 
 
@@ -164,10 +173,11 @@ class DomainsHandler(BaseHandler):
                 new_domain_lower = new_domain.lower()
                 if new_domain_lower in new_domains_lower:
                     continue
-                if not _DOMAIN_RE.match(new_domain_lower):
+                match = _DOMAIN_RE.match(new_domain_lower)
+                if not match:
                     raise Error(
                         '"%s" is not a valid domain name.' % new_domain, '''\
-Domain name must consist of two or more parts separated by dots. \
+Domain name must consist of two or three parts separated by dots. \
 Each part must consist of Latin letters, digits, and hyphens; \
 it must not start or end with a hyphen.''')
                 if new_domain_lower.endswith(_AKSHELL_SUFFIX):
@@ -175,15 +185,10 @@ it must not start or end with a hyphen.''')
                         raise Error(
                             'Only one akshell.com subdomain is provided.')
                     has_akshell = True
-                    if new_domain_lower.count('.', 0, -len(_AKSHELL_SUFFIX)):
-                        raise Error('''\
-Name of akshell.com subdomain must not contain dots.''')
-                if (new_domain_lower not in domains_lower
-                    and os.path.exists(ROOT.domains[new_domain_lower])):
-                    raise Error(
-                        ('The domain "%s" is bound to other application.'
-                         % new_domain),
-                        'Please choose another domain.')
+                if new_domain_lower not in domains_lower:
+                    _check_domain_is_free(new_domain_lower)
+                if match.group(1) and match.group(2) not in domains_lower:
+                    _check_domain_is_free(match.group(2))
                 new_domains.append(new_domain)
                 new_domains_lower.add(new_domain_lower)
             app_id = get_id(request.dev_name, app_name)

@@ -217,8 +217,9 @@ class AppTest(BaseTest):
         self.put(path, ['1.akshell.com', '2.akshell.com'], status=BAD_REQUEST)
         self.put(path, ['1.2.akshell.com'], status=BAD_REQUEST)
         self.post('apps/', {'name': 'Forum'}, status=CREATED)
-        self.put('apps/forum/domains', ['forum.akshell.com'])
+        self.put('apps/forum/domains', ['forum.akshell.com', 'myforum.com'])
         self.put(path, ['forum.akshell.com'], status=BAD_REQUEST)
+        self.put(path, ['blog.myforum.com'], status=BAD_REQUEST)
         self.delete('apps/blog/')
 
     def test_code(self):
