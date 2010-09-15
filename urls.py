@@ -6,13 +6,14 @@ from django.contrib import admin
 from utils import NAME_PATTERN
 from resource import Resource
 from auth_handlers import SignupHandler, LoginHandler, LogoutHandler
-from dev_handlers import ConfigHandler, RsaPubHandler, AppsHandler
+from dev_handlers import IndexHandler, ConfigHandler, RsaPubHandler, AppsHandler
 
 
 admin.autodiscover()
 
 urlpatterns = patterns(
     '',
+    (r'^$', Resource(IndexHandler)),
     (r'^admin/doc/', include('django.contrib.admindocs.urls')),
     (r'^admin/', include(admin.site.urls)),
     (r'^signup$', Resource(SignupHandler)),

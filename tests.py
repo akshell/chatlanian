@@ -73,6 +73,7 @@ class BaseTest(TestCase):
 
 class BasicTest(BaseTest):
     def test_misc(self):
+        self.get('')
         self.assertEqual(self.client.post('/signup').status_code, FORBIDDEN)
         self.get('no/such/page', status=NOT_FOUND)
 

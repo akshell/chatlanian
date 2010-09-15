@@ -6,10 +6,19 @@ import os
 from piston.handler import BaseHandler
 from piston.utils import require_mime
 from django.http import HttpResponse
+from django.shortcuts import render_to_response
 
+from settings import DEBUG
 from utils import read_file, write_file, check_name
 from paths import ROOT
 from managers import create_app
+
+
+class IndexHandler(BaseHandler):
+    allowed_methods = ('GET',)
+
+    def get(self, request):
+        return render_to_response('index.html', {'DEBUG': DEBUG})
 
 
 class ConfigHandler(BaseHandler):
