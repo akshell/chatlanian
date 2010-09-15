@@ -18,7 +18,8 @@ class IndexHandler(BaseHandler):
     allowed_methods = ('GET',)
 
     def get(self, request):
-        return render_to_response('index.html', {'DEBUG': DEBUG})
+        return render_to_response(
+            'index.html', {'DEBUG': DEBUG, 'username': request.user.username})
 
 
 class ConfigHandler(BaseHandler):
