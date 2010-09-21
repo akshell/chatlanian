@@ -3,7 +3,7 @@
 import os.path
 import os
 
-from settings import DEBUG
+from settings import DEBUG, DATABASES
 from utils import write_file, touch_file, SharedLock, ExclusiveLock
 
 
@@ -89,13 +89,15 @@ class RootPath(str):
     data = _child('data')
     devs = _child('data/devs', DevsPath)
     domains = _child('data/domains', DirPath)
+    patsak_conf = _child('patsak.conf')
+    ecilop_conf = _child('ecilop.conf')
 
 
 ROOT = RootPath(
     os.path.abspath(os.path.dirname(__file__)) + '/root' if DEBUG else '/ak')
 
 
-def create_paths():
+def create_paths(use_test_db=False):
     dev_path = ROOT.devs[ANONYM_NAME]
     app_path = dev_path.apps[SAMPLE_NAME]
     for path in (
@@ -113,3 +115,16 @@ def create_paths():
     write_file(app_path.name, SAMPLE_NAME)
     if not os.path.islink(app_path.code):
         os.symlink(SAMPLE_PATH, app_path.code)
+    write_file(ROOT.patsak_conf, '''\
+lib=%s/lib
+db=dbname=%s
+''' % (PATSAK_PATH,
+       DATABASES['default']['TEST_NAME' if use_test_db else 'NAME']))
+    write_file(ROOT.ecilop_conf, '''\
+socket=%s
+data=%s
+locks=%s
+patsak=%s
+patsak-config=%s
+''' % (ROOT.ecilop_socket, ROOT.data, ROOT.locks,
+       PATSAK_EXE_PATH, ROOT.patsak_conf))

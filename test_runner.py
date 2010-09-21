@@ -8,7 +8,6 @@ import os
 from django.test.simple import DjangoTestSuiteRunner
 
 from utils import write_file
-from settings import DATABASES
 import paths
 
 
@@ -20,7 +19,7 @@ class TestRunner(DjangoTestSuiteRunner):
     def setup_test_environment(self, **kwargs):
         DjangoTestSuiteRunner.setup_test_environment(self, **kwargs)
         paths.ROOT = paths.RootPath(TEST_ROOT_PATH)
-        paths.create_paths()
+        paths.create_paths(True)
         tablespace_paths = []
         for i in range(TEST_DRAFT_COUNT):
             draft_path = paths.ROOT.drafts[str(i)]
@@ -33,21 +32,8 @@ class TestRunner(DjangoTestSuiteRunner):
             write_file(draft_path.rsa_pub, 'public key')
         Popen(['sudo', 'chown', 'postgres'] + tablespace_paths).wait()
         os.symlink('0', paths.ROOT.drafts.curr)
-        patsak_config_path = TEST_ROOT_PATH + '/patsak.conf'
-        write_file(patsak_config_path, '''\
-lib=%s/../patsak/lib
-db=dbname=%s
-''' % (paths.CHATLANIAN_PATH, DATABASES['default']['TEST_NAME']))
         self._ecilop_process = Popen(
-            [
-                paths.ECILOP_EXE_PATH,
-                '--socket', paths.ROOT.ecilop_socket,
-                '--data', paths.ROOT.data,
-                '--locks', paths.ROOT.locks,
-                '--patsak',
-                paths.PATSAK_EXE_PATH,
-                '--patsak-config', patsak_config_path,
-            ],
+            [paths.ECILOP_EXE_PATH, '--config', paths.ROOT.ecilop_conf],
             stdout=PIPE)
         self._ecilop_process.stdout.readline()
         self._ecilop_process.stdout.readline()
