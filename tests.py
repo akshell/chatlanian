@@ -37,7 +37,7 @@ class BaseTest(TestCase):
             path = '/' + path
         if not isinstance(data, str):
             data = json.dumps(data)
-            content_type = 'application/json'
+            content_type = content_type or 'application/json'
         parsed = urlparse(path)
         request = {
             'REQUEST_METHOD': method,
@@ -85,6 +85,7 @@ class BasicTest(BaseTest):
         self.post(
             'signup',
             {'name': 'mary', 'email': 'mary@yyy.com', 'password': 'yyy'},
+            content_type='application/json; charset=UTF-8',
             status=CREATED)
         self.post('logout')
         self.post('logout')
