@@ -40,7 +40,8 @@ class SignupHandler(BaseHandler):
         try:
             validate_email(email)
         except ValidationError:
-            raise Error('The email "%s" is incorrect.' % email)
+            raise Error('The email "%s" is incorrect.' % email,
+                        'Please correct the email.')
         if User.objects.filter(email=email):
             raise Error(
                 'The email "%s" has already been taken.' % email,
