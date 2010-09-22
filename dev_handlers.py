@@ -12,6 +12,7 @@ from settings import DEBUG
 from utils import read_file, write_file, check_name
 from paths import ROOT
 from managers import create_app
+from resource import HALF_ANONYMOUS
 
 
 class IndexHandler(BaseHandler):
@@ -38,7 +39,7 @@ class ConfigHandler(BaseHandler):
 
 class RsaPubHandler(BaseHandler):
     allowed_methods = ('GET')
-    handles_anonyms = False
+    access = HALF_ANONYMOUS
 
     def get(self, request):
         return HttpResponse(

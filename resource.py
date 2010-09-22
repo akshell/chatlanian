@@ -1,6 +1,6 @@
 # (c) 2010 by Anton Korenyushkin
 
-from httplib import FORBIDDEN
+from httplib import UNAUTHORIZED, FORBIDDEN
 
 from piston.resource import Resource as PistonResource
 from django.http import HttpResponse
@@ -8,6 +8,8 @@ from django.http import HttpResponse
 from paths import ANONYM_NAME, ROOT
 from managers import create_dev
 
+
+ANONYMOUS, GET_ANONYMOUS, HALF_ANONYMOUS, AUTHENTICATED = range(4)
 
 _CHARSET_SUFFIX = '; charset=utf-8'
 
@@ -30,12 +32,14 @@ class Resource(PistonResource):
         if request.user.is_authenticated():
             request.dev_name = request.user.username
         else:
+            access = getattr(self.handler, 'access', GET_ANONYMOUS)
+            if access == AUTHENTICATED:
+                return HttpResponse('Authentication required', status=UNAUTHORIZED)
             try:
                 request.dev_name = request.session['dev_name']
             except KeyError:
-                handles_anonyms = getattr(self.handler, 'handles_anonyms', None)
-                if (handles_anonyms is False or
-                    handles_anonyms is None and request.method != 'GET'):
+                if (access == HALF_ANONYMOUS or
+                    access == GET_ANONYMOUS and request.method != 'GET'):
                     request.dev_name = request.session['dev_name'] = (
                         create_dev())
                 else:

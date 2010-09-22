@@ -15,11 +15,12 @@ from error import Error
 from utils import check_name, get_id, execute_sql
 from paths import ANONYM_PREFIX, ROOT
 from managers import create_dev, stop_patsaks
+from resource import ANONYMOUS, AUTHENTICATED
 
 
 class SignupHandler(BaseHandler):
     allowed_methods = ('POST',)
-    handles_anonyms = True
+    access = ANONYMOUS
 
     def post(self, request):
         dev_name = request.data['name']
@@ -73,7 +74,7 @@ UPDATE pg_tablespace SET spclocation = %s, spcname = %s WHERE spcname = %s''',
 
 class LoginHandler(BaseHandler):
     allowed_methods = ('POST',)
-    handles_anonyms = True
+    access = ANONYMOUS
 
     def post(self, request):
         user = auth.authenticate(
@@ -92,7 +93,7 @@ class LoginHandler(BaseHandler):
 
 class LogoutHandler(BaseHandler):
     allowed_methods = ('POST',)
-    handles_anonyms = True
+    access = AUTHENTICATED
 
     def post(self, request):
         auth.logout(request)

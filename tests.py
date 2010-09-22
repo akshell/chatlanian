@@ -2,7 +2,7 @@
 
 from subprocess import Popen
 from urlparse import urlparse
-from httplib import OK, CREATED, BAD_REQUEST, FORBIDDEN, NOT_FOUND
+from httplib import OK, CREATED, BAD_REQUEST, UNAUTHORIZED, FORBIDDEN, NOT_FOUND
 import urllib
 import shutil
 import os
@@ -88,7 +88,7 @@ class BasicTest(BaseTest):
             content_type='application/json; charset=UTF-8',
             status=CREATED)
         self.post('logout')
-        self.post('logout')
+        self.post('logout', status=UNAUTHORIZED)
         self.post(
             'signup',
             {'name': 'Bob', 'email': 'bob@yyy.com', 'password': 'yyy'},

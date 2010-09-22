@@ -18,6 +18,7 @@ from utils import check_name, read_file, write_file, get_id, execute_sql
 from paths import ROOT
 from managers import CREATE_SCHEMA_SQL, send_to_ecilop, stop_patsaks
 from git import parse_git_command, run_git
+from resource import AUTHENTICATED
 
 
 def _getting_app_path(func):
@@ -155,6 +156,7 @@ _AKSHELL_SUFFIX = '.akshell.com'
 
 class DomainsHandler(BaseHandler):
     allowed_methods = ('GET', 'PUT')
+    access = AUTHENTICATED
 
     @_getting_app_path
     def get(self, request, app_name, app_path):
