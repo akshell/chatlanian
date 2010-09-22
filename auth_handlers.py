@@ -81,7 +81,7 @@ class LoginHandler(BaseHandler):
             username=request.data['name'].replace(' ', '-'),
             password=request.data['password'])
         if not user or not user.is_active:
-            raise Error('Bad user name or password')
+            raise Error('Incorrect user name or password.')
         if request.is_half_anonymous:
             execute_sql('SELECT ak.drop_schemas(%s)', (request.dev_name,))
             execute_sql('DROP TABLESPACE "%s"' % request.dev_name)
@@ -97,4 +97,17 @@ class LogoutHandler(BaseHandler):
 
     def post(self, request):
         auth.logout(request)
+        return HttpResponse()
+
+
+class PasswordHandler(BaseHandler):
+    allowed_methods = ('POST',)
+    access = AUTHENTICATED
+
+    def post(self, request):
+        if not request.user.check_password(request.data['old']):
+            raise Error('The old password is incorrect.',
+                        'Please retype the old password.')
+        request.user.set_password(request.data['new'])
+        request.user.save()
         return HttpResponse()

@@ -128,9 +128,11 @@ class BasicTest(BaseTest):
             'signup',
             {'name': 'Ho-Shi-Min', 'email': 'ho@shi.min', 'password': 'xxx'},
             status=CREATED)
+        self.post('password', {'old': 'bad', 'new': 'yyy'}, status=BAD_REQUEST)
+        self.post('password', {'old': 'xxx', 'new': 'zzz'})
         self.client.logout()
         self.get('rsa.pub')
-        self.post('login', {'name': 'Ho Shi Min', 'password': 'xxx'})
+        self.post('login', {'name': 'Ho Shi Min', 'password': 'zzz'})
 
 
 class DevTest(BaseTest):
