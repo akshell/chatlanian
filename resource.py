@@ -25,9 +25,12 @@ class Resource(PistonResource):
     def __call__(self, request, *args, **kwargs):
         if request.method != 'GET' and not request.is_ajax():
             return HttpResponse('Non-AJAX request', status=FORBIDDEN)
-        content_type = request.META.get('CONTENT_TYPE', '')
-        if content_type.lower().endswith(_CHARSET_SUFFIX):
-            request.META['CONTENT_TYPE'] = content_type[:-len(_CHARSET_SUFFIX)]
+        if request.raw_post_data:
+            content_type = request.META.get('CONTENT_TYPE', '')
+            if content_type.lower().endswith(_CHARSET_SUFFIX):
+                request.META['CONTENT_TYPE'] = content_type[:-len(_CHARSET_SUFFIX)]
+        else:
+            request.META.pop('CONTENT_TYPE', None)
         request.is_anonymous = request.is_half_anonymous = False
         if request.user.is_authenticated():
             request.dev_name = request.user.username

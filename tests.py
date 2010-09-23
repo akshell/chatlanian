@@ -98,7 +98,7 @@ class BasicTest(BaseTest):
             {'name': 'mary', 'email': 'mary@yyy.com', 'password': 'yyy'},
             content_type='application/json; charset=UTF-8',
             status=CREATED)
-        self.post('logout')
+        self.post('logout', content_type='text/plain')
         self.post('logout', status=UNAUTHORIZED)
         self.post(
             'signup',
