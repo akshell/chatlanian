@@ -67,9 +67,7 @@ class BaseTest(TestCase):
                 if response['Content-Type'].startswith('application/json') else
                 response.content)
 
-    def get(self, path, data=None, status=OK):
-        if data:
-            path += '?' + urlencode(data, True)
+    def get(self, path, status=OK):
         return self.request('GET', path, status=status)
 
     def post(self, path, data='', content_type=None, status=OK):
