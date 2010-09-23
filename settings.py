@@ -60,3 +60,17 @@ AUTHENTICATION_BACKENDS = (
 )
 
 TEST_RUNNER = 'chatlanian.test_runner.TestRunner'
+
+DEFAULT_FROM_EMAIL = 'Akshell <no-reply@akshell.com>'
+
+EMAIL_HOST = 'smtp.gmail.com'
+
+EMAIL_PORT = 587
+
+EMAIL_HOST_USER = 'no-reply@akshell.com'
+
+EMAIL_HOST_PASSWORD = 'g9fK97u8SC7Dr0'
+
+EMAIL_USE_TLS = True
+
+PASSWORD_RESET_TIMEOUT_DAYS = 2

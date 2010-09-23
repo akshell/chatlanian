@@ -1,7 +1,7 @@
 # (c) 2010 by Anton Korenyushkin
 
 from __future__ import with_statement
-from httplib import CREATED
+from httplib import CREATED, NOT_FOUND
 import os
 
 from piston.handler import BaseHandler
@@ -9,7 +9,12 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
 from django.contrib import auth
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseRedirect
+from django.core.mail import send_mail
+from django.template import Context
+from django.template.loader import get_template
+from django.contrib.auth.tokens import default_token_generator
+from django.utils.http import int_to_base36, base36_to_int
 
 from error import Error
 from utils import check_name, get_id, execute_sql
@@ -102,12 +107,70 @@ class LogoutHandler(BaseHandler):
 
 class PasswordHandler(BaseHandler):
     allowed_methods = ('POST',)
-    access = AUTHENTICATED
+    access = ANONYMOUS
 
     def post(self, request):
-        if not request.user.check_password(request.data['old']):
-            raise Error('The old password is incorrect.',
-                        'Please retype the old password.')
-        request.user.set_password(request.data['new'])
-        request.user.save()
+        if request.user.is_authenticated():
+            if not request.user.check_password(request.data['old']):
+                raise Error('The old password is incorrect.',
+                            'Please retype the old password.')
+            request.user.set_password(request.data['new'])
+            request.user.save()
+        else:
+            try:
+                name = request.data['name']
+            except KeyError:
+                email = request.data['email']
+                try:
+                    user = User.objects.get(email=email)
+                except User.DoesNotExist:
+                    raise Error(
+                        'A user with the email "%s" doesn\'t exist.' % email,
+                        'Please correct the email.')
+            else:
+                try:
+                    user = User.objects.get(
+                        username__iexact=name.replace(' ', '-'))
+                except User.DoesNotExist:
+                    raise Error(
+                        'A user with the name "%s" doesn\'t exist.' % name,
+                        'Please correct the name.')
+            context_dict = {
+                'username': user.username,
+                'uidb36': int_to_base36(user.id),
+                'token': default_token_generator.make_token(user),
+            }
+            send_mail(
+                'Akshell password reset',
+                get_template('reset_email.txt').render(Context(context_dict)),
+                None,
+                (user.email,))
         return HttpResponse()
+
+
+def _getting_reset_user(func):
+    def result(self, request, uidb36, token):
+        try:
+            user = User.objects.get(id=base36_to_int(uidb36))
+        except (ValueError, User.DoesNotExist):
+            pass
+        else:
+            if default_token_generator.check_token(user, token):
+                return func(self, request, user)
+        return HttpResponse(
+            get_template('bad_reset.html').render(Context()), status=NOT_FOUND)
+    return result
+
+
+class PasswordResetHandler(BaseHandler):
+    allowed_methods = ('GET', 'POST')
+
+    @_getting_reset_user
+    def get(self, request, user):
+        return HttpResponse(get_template('reset.html').render(Context()))
+
+    @_getting_reset_user
+    def post(self, request, user):
+        user.set_password(request.POST['new'])
+        user.save()
+        return HttpResponseRedirect('/')

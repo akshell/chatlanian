@@ -1,0 +1,9 @@
+Dear {{ username }}
+
+Use the following link to reset your Akshell password:
+
+http://ide.akshell.com/password/{{ uidb36 }}-{{ token }}
+
+--
+Best regards,
+Akshell.

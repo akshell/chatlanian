@@ -1,8 +1,9 @@
 # (c) 2010 by Anton Korenyushkin
 
+from httplib import (
+    OK, CREATED, FOUND, BAD_REQUEST, UNAUTHORIZED, FORBIDDEN, NOT_FOUND)
 from subprocess import Popen
 from urlparse import urlparse
-from httplib import OK, CREATED, BAD_REQUEST, UNAUTHORIZED, FORBIDDEN, NOT_FOUND
 import urllib
 import shutil
 import os
@@ -15,6 +16,16 @@ from django.db import connection
 
 from paths import ANONYM_NAME, ROOT, create_paths
 from utils import execute_sql
+import auth_handlers
+
+
+_last_mail_message = None
+
+def _send_mail(subject, message, from_email, recipient_list):
+    global _last_mail_message
+    _last_mail_message = message
+
+auth_handlers.send_mail = _send_mail
 
 
 class BaseTest(TestCase):
@@ -133,6 +144,16 @@ class BasicTest(BaseTest):
         self.client.logout()
         self.get('rsa.pub')
         self.post('login', {'name': 'Ho Shi Min', 'password': 'zzz'})
+        self.client.logout()
+        self.post('password', {'name': 'bad'}, status=BAD_REQUEST)
+        self.post('password', {'email': 'bad'}, status=BAD_REQUEST)
+        self.get('password/bad-bad', status=NOT_FOUND)
+        self.post('password', {'name': 'ho shi min'})
+        self.post('password', {'email': 'bob@xxx.com'})
+        path = _last_mail_message.split('\n')[4][23:]
+        self.get(path)
+        self.post(path, 'new=yyy', status=FOUND)
+        self.post('login', {'name': 'bob', 'password': 'yyy'})
 
 
 class DevTest(BaseTest):
