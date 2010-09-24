@@ -15,7 +15,9 @@ from django.template import Context
 from django.template.loader import get_template
 from django.contrib.auth.tokens import default_token_generator
 from django.utils.http import int_to_base36, base36_to_int
+from django.shortcuts import render_to_response
 
+from settings import AUTHENTICATION_BACKENDS
 from error import Error
 from utils import check_name, get_id, execute_sql
 from paths import ANONYM_PREFIX, ROOT
@@ -72,7 +74,7 @@ UPDATE pg_tablespace SET spclocation = %s, spcname = %s WHERE spcname = %s''',
                          request.dev_name))
         else:
             create_dev(dev_name)
-        user.backend = 'chatlanian.auth_backend.AuthBackend'
+        user.backend = AUTHENTICATION_BACKENDS[0]
         auth.login(request, user)
         return HttpResponse(status=CREATED)
 
@@ -148,29 +150,20 @@ class PasswordHandler(BaseHandler):
         return HttpResponse()
 
 
-def _getting_reset_user(func):
-    def result(self, request, uidb36, token):
-        try:
-            user = User.objects.get(id=base36_to_int(uidb36))
-        except (ValueError, User.DoesNotExist):
-            pass
-        else:
-            if default_token_generator.check_token(user, token):
-                return func(self, request, user)
-        return HttpResponse(
-            get_template('bad_reset.html').render(Context()), status=NOT_FOUND)
-    return result
-
-
-class PasswordResetHandler(BaseHandler):
-    allowed_methods = ('GET', 'POST')
-
-    @_getting_reset_user
-    def get(self, request, user):
-        return HttpResponse(get_template('reset.html').render(Context()))
-
-    @_getting_reset_user
-    def post(self, request, user):
-        user.set_password(request.POST['new'])
-        user.save()
-        return HttpResponseRedirect('/')
+def password_reset_view(request, uidb36, token):
+    try:
+        user = User.objects.get(id=base36_to_int(uidb36))
+    except (ValueError, User.DoesNotExist):
+        pass
+    else:
+        if default_token_generator.check_token(user, token):
+            if request.method == 'GET':
+                return render_to_response('reset.html')
+            else:
+                user.set_password(request.POST['new'])
+                user.save()
+                user.backend = AUTHENTICATION_BACKENDS[0]
+                auth.login(request, user)
+                return HttpResponseRedirect('/')
+    return HttpResponse(
+        get_template('bad_reset.html').render(Context()), status=NOT_FOUND)

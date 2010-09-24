@@ -6,9 +6,9 @@ from django.contrib import admin
 from utils import NAME_PATTERN
 from resource import Resource
 from auth_handlers import (
-    SignupHandler, LoginHandler, LogoutHandler, PasswordHandler, PasswordResetHandler)
-from dev_handlers import (
-    IndexHandler, ConfigHandler, RsaPubHandler, AppsHandler)
+    SignupHandler, LoginHandler, LogoutHandler, PasswordHandler,
+    password_reset_view)
+from dev_handlers import IndexHandler, ConfigHandler, RsaPubHandler, AppsHandler
 
 
 admin.autodiscover()
@@ -22,8 +22,7 @@ urlpatterns = patterns(
     (r'^login$', Resource(LoginHandler)),
     (r'^logout$', Resource(LogoutHandler)),
     (r'^password$', Resource(PasswordHandler)),
-    (r'^password/(?P<uidb36>[0-9A-Za-z]+)-(?P<token>.+)$',
-     Resource(PasswordResetHandler)),
+    (r'^password/(?P<uidb36>[0-9A-Za-z]+)-(?P<token>.+)$', password_reset_view),
     (r'^config$', Resource(ConfigHandler)),
     (r'^rsa\.pub$', Resource(RsaPubHandler)),
     (r'^apps/$', Resource(AppsHandler)),
