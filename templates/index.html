@@ -10,6 +10,8 @@
 
         <script type = "text/javascript">
             USERNAME = "{{ username }}";
+            APPS = {{ apps|safe }};
+            CONFIG = {{ config|safe }};
             OBJJ_MAIN_FILE = "frontend/main.j";
             {% if DEBUG %}
               OBJJ_INCLUDE_PATHS = ["Frameworks/Debug", "Frameworks"];

@@ -3,6 +3,7 @@
 from httplib import CREATED
 import os
 
+import simplejson as json
 from piston.handler import BaseHandler
 from piston.utils import require_mime
 from django.http import HttpResponse
@@ -10,17 +11,37 @@ from django.shortcuts import render_to_response
 
 from settings import DEBUG
 from utils import read_file, write_file, check_name
-from paths import ROOT
+from paths import SAMPLE_NAME, ROOT
 from managers import create_app
 from resource import HALF_ANONYMOUS
+
+
+def _get_apps(dev_name):
+    apps_path = ROOT.devs[dev_name].apps
+    return [
+        read_file(apps_path[lower_name].name)
+        for lower_name in sorted(os.listdir(apps_path))
+    ]
 
 
 class IndexHandler(BaseHandler):
     allowed_methods = ('GET',)
 
     def get(self, request):
+        if request.is_anonymous:
+            apps = [SAMPLE_NAME]
+            config = '{}'
+        else:
+            apps = _get_apps(request.dev_name)
+            config = read_file(ROOT.devs[request.dev_name].config)
         return render_to_response(
-            'index.html', {'DEBUG': DEBUG, 'username': request.user.username})
+            'index.html',
+            {
+                'DEBUG': DEBUG,
+                'username': request.user.username,
+                'apps': json.dumps(apps),
+                'config': config,
+            })
 
 
 class ConfigHandler(BaseHandler):
@@ -51,11 +72,7 @@ class AppsHandler(BaseHandler):
     allowed_methods = ('GET', 'POST')
 
     def get(self, request):
-        apps_path = ROOT.devs[request.dev_name].apps
-        return [
-            read_file(apps_path[lower_name].name)
-            for lower_name in sorted(os.listdir(apps_path))
-        ]
+        return _get_apps(request.dev_name)
 
     def post(self, request):
         app_name = request.data['name']

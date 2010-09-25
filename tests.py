@@ -85,6 +85,8 @@ class BasicTest(BaseTest):
         self.get('')
         self.assertEqual(self.client.post('/signup').status_code, FORBIDDEN)
         self.get('no/such/page', status=NOT_FOUND)
+        self.get('rsa.pub')
+        self.get('')
 
     def test_auth(self):
         self.post(
