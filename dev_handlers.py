@@ -39,7 +39,7 @@ class IndexHandler(BaseHandler):
             'index.html',
             {
                 'DEBUG': DEBUG,
-                'username': request.user.username,
+                'user': request.user,
                 'apps': json.dumps(apps),
                 'config': config,
             })

@@ -9,7 +9,8 @@
         <title>Akshell</title>
 
         <script type = "text/javascript">
-            USERNAME = "{{ username }}";
+            USERNAME = "{{ user.username }}";
+            EMAIL = "{{ user.email|escapejs }}";
             APPS = {{ apps|safe }};
             CONFIG = {{ config|safe }};
             OBJJ_MAIN_FILE = "frontend/main.j";
