@@ -8,7 +8,8 @@ from resource import Resource
 from auth_handlers import (
     SignupHandler, LoginHandler, LogoutHandler, PasswordHandler,
     password_reset_view)
-from dev_handlers import IndexHandler, ConfigHandler, RsaPubHandler, AppsHandler
+from dev_handlers import (
+    IndexHandler, ConfigHandler, RsaPubHandler, ContactHandler, AppsHandler)
 
 
 admin.autodiscover()
@@ -25,6 +26,7 @@ urlpatterns = patterns(
     (r'^password/(?P<uidb36>[0-9A-Za-z]+)-(?P<token>.+)$', password_reset_view),
     (r'^config$', Resource(ConfigHandler)),
     (r'^rsa\.pub$', Resource(RsaPubHandler)),
+    (r'^contact$', Resource(ContactHandler)),
     (r'^apps/$', Resource(AppsHandler)),
     (r'^apps/(?P<app_name>%s)/' % NAME_PATTERN, include('chatlanian.app_urls')),
     (r'^libs/(?P<owner_name>%s)/' % NAME_PATTERN,

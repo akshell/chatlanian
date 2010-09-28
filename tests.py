@@ -17,15 +17,19 @@ from django.db import connection
 from paths import ANONYM_NAME, ROOT, create_paths
 from utils import execute_sql
 import auth_handlers
+import dev_handlers
 
 
-_last_mail_message = None
+_last_email_message = None
+_last_from_email = None
 
 def _send_mail(subject, message, from_email, recipient_list):
-    global _last_mail_message
-    _last_mail_message = message
+    global _last_email_message, _last_from_email
+    _last_email_message = message
+    _last_from_email = from_email
 
-auth_handlers.send_mail = _send_mail
+auth_handlers.send_mail = dev_handlers.send_mail = _send_mail
+
 
 
 class BaseTest(TestCase):
@@ -87,6 +91,9 @@ class BasicTest(BaseTest):
         self.get('no/such/page', status=NOT_FOUND)
         self.get('rsa.pub')
         self.get('')
+        self.post('/contact', {'message': 'wuzzup', 'email': 'x@y.com  '})
+        self.assertEqual(_last_email_message, 'wuzzup')
+        self.assertEqual(_last_from_email, 'x@y.com')
 
     def test_auth(self):
         self.post(
@@ -150,7 +157,7 @@ class BasicTest(BaseTest):
         self.get('password/bad-bad', status=NOT_FOUND)
         self.post('password', {'name': 'ho shi min'})
         self.post('password', {'email': 'bob@xxx.com'})
-        path = _last_mail_message.split('\n')[4][23:]
+        path = _last_email_message.split('\n')[4][23:]
         self.get(path)
         self.post(path, 'new=yyy', status=FOUND)
         self.post('login', {'name': 'bob', 'password': 'yyy'})

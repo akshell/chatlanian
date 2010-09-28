@@ -8,8 +8,9 @@ from piston.handler import BaseHandler
 from piston.utils import require_mime
 from django.http import HttpResponse
 from django.shortcuts import render_to_response
+from django.core.mail import send_mail
 
-from settings import DEBUG
+from settings import DEBUG, ADMINS
 from utils import read_file, write_file, check_name
 from paths import SAMPLE_NAME, ROOT
 from managers import create_app
@@ -66,6 +67,18 @@ class RsaPubHandler(BaseHandler):
         return HttpResponse(
             read_file(ROOT.devs[request.dev_name].rsa_pub),
             'text/plain; charset=utf-8')
+
+
+class ContactHandler(BaseHandler):
+    allowed_methods = ('POST',)
+
+    def post(self, request):
+        send_mail(
+            'Contact',
+            request.data['message'],
+            request.data['email'].strip(),
+            (ADMINS[0][1],))
+        return HttpResponse()
 
 
 class AppsHandler(BaseHandler):
