@@ -74,9 +74,9 @@ class ContactHandler(BaseHandler):
 
     def post(self, request):
         send_mail(
-            'Contact',
+            'From ' + (request.data['email'].strip() or 'anonym'),
             request.data['message'],
-            request.data['email'].strip(),
+            None,
             (ADMINS[0][1],))
         return HttpResponse()
 

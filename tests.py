@@ -20,13 +20,13 @@ import auth_handlers
 import dev_handlers
 
 
+_last_email_subject = None
 _last_email_message = None
-_last_from_email = None
 
 def _send_mail(subject, message, from_email, recipient_list):
-    global _last_email_message, _last_from_email
+    global _last_email_subject, _last_email_message
+    _last_email_subject = subject
     _last_email_message = message
-    _last_from_email = from_email
 
 auth_handlers.send_mail = dev_handlers.send_mail = _send_mail
 
@@ -91,9 +91,12 @@ class BasicTest(BaseTest):
         self.get('no/such/page', status=NOT_FOUND)
         self.get('rsa.pub')
         self.get('')
-        self.post('/contact', {'message': 'wuzzup', 'email': 'x@y.com  '})
+        self.post('/contact', {'email': 'x@y.com  ', 'message': 'wuzzup'})
+        self.assertEqual(_last_email_subject, 'From x@y.com')
         self.assertEqual(_last_email_message, 'wuzzup')
-        self.assertEqual(_last_from_email, 'x@y.com')
+        self.post('/contact', {'email': ' ', 'message': 'yo'})
+        self.assertEqual(_last_email_subject, 'From anonym')
+        self.assertEqual(_last_email_message, 'yo')
 
     def test_auth(self):
         self.post(
