@@ -4,6 +4,7 @@ from __future__ import with_statement
 from httplib import CREATED, NOT_FOUND
 import os
 
+import simplejson as json
 from piston.handler import BaseHandler
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
@@ -21,7 +22,7 @@ from settings import AUTHENTICATION_BACKENDS
 from error import Error
 from utils import check_name, get_id, execute_sql
 from paths import ANONYM_PREFIX, ROOT
-from managers import create_dev, stop_patsaks
+from managers import create_dev, stop_patsaks, get_app_names, read_config
 from resource import ANONYMOUS, AUTHENTICATED
 
 
@@ -95,7 +96,11 @@ class LoginHandler(BaseHandler):
             os.rename(ROOT.devs[request.dev_name], ROOT.trash[request.dev_name])
             os.remove(ROOT.locks[request.dev_name])
         auth.login(request, user)
-        return HttpResponse()
+        return {
+            'email': user.email,
+            'appNames': get_app_names(user.username),
+            'config': json.loads(read_config(user.username)),
+        }
 
 
 class LogoutHandler(BaseHandler):

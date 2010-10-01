@@ -11,7 +11,6 @@ import os
 import simplejson as json
 from django.test import TestCase
 from django.test.client import Client, FakePayload
-from django.utils.http import urlencode
 from django.db import connection
 
 from paths import ANONYM_NAME, ROOT, create_paths
@@ -103,6 +102,8 @@ class BasicTest(BaseTest):
             'signup',
             {'name': 'bob', 'email': 'bob@xxx.com', 'password': 'xxx'},
             status=CREATED)
+        self.put('/config', {'x': 42})
+        self.post('/apps/', {'name': 'blog'}, status=CREATED)
         self.post(
             'signup',
             {'name': 'mary', 'email': 'mary@yyy.com', 'password': 'yyy'},
@@ -138,7 +139,13 @@ class BasicTest(BaseTest):
             'login',
             {'name': 'bad', 'password': 'xxx'},
             status=BAD_REQUEST)
-        self.post('login', {'name': 'bob', 'password': 'xxx'})
+        self.assertEqual(
+            self.post('login', {'name': 'bob', 'password': 'xxx'}),
+            {
+                'email': 'bob@xxx.com',
+                'appNames': ['blog', 'hello-world'],
+                'config': {'x': 42},
+            })
         self.client.logout()
         self.post(
             'signup',

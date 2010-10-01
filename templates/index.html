@@ -11,7 +11,7 @@
         <script type = "text/javascript">
             USERNAME = "{{ user.username }}";
             EMAIL = "{{ user.email|escapejs }}";
-            APPS = {{ apps|safe }};
+            APP_NAMES = {{ app_names|safe }};
             CONFIG = {{ config|safe }};
             OBJJ_MAIN_FILE = "frontend/main.j";
             {% if DEBUG %}

@@ -1,7 +1,6 @@
 # (c) 2010 by Anton Korenyushkin
 
 from httplib import CREATED
-import os
 
 import simplejson as json
 from piston.handler import BaseHandler
@@ -13,16 +12,8 @@ from django.core.mail import send_mail
 from settings import DEBUG, ADMINS
 from utils import read_file, write_file, check_name
 from paths import SAMPLE_NAME, ROOT
-from managers import create_app
+from managers import create_app, get_app_names, read_config
 from resource import HALF_ANONYMOUS
-
-
-def _get_apps(dev_name):
-    apps_path = ROOT.devs[dev_name].apps
-    return [
-        read_file(apps_path[lower_name].name)
-        for lower_name in sorted(os.listdir(apps_path))
-    ]
 
 
 class IndexHandler(BaseHandler):
@@ -30,17 +21,17 @@ class IndexHandler(BaseHandler):
 
     def get(self, request):
         if request.is_anonymous:
-            apps = [SAMPLE_NAME]
+            app_names = [SAMPLE_NAME]
             config = '{}'
         else:
-            apps = _get_apps(request.dev_name)
-            config = read_file(ROOT.devs[request.dev_name].config)
+            app_names = get_app_names(request.dev_name)
+            config = read_config(request.dev_name)
         return render_to_response(
             'index.html',
             {
                 'DEBUG': DEBUG,
                 'user': request.user,
-                'apps': json.dumps(apps),
+                'app_names': json.dumps(app_names),
                 'config': config,
             })
 
@@ -50,8 +41,7 @@ class ConfigHandler(BaseHandler):
 
     def get(self, request):
         return HttpResponse(
-            read_file(ROOT.devs[request.dev_name].config),
-            'application/json; charset=utf-8')
+            read_config(request.dev_name), 'application/json; charset=utf-8')
 
     @require_mime('json')
     def put(self, request):
@@ -85,7 +75,7 @@ class AppsHandler(BaseHandler):
     allowed_methods = ('GET', 'POST')
 
     def get(self, request):
-        return _get_apps(request.dev_name)
+        return get_app_names(request.dev_name)
 
     def post(self, request):
         app_name = request.data['name']

@@ -79,3 +79,14 @@ def send_to_ecilop(header, body=None):
 
 def stop_patsaks(host_id):
     send_to_ecilop('STOP ' + host_id)
+
+
+def get_app_names(dev_name):
+    apps_path = ROOT.devs[dev_name].apps
+    return [
+        read_file(apps_path[lower_name].name)
+        for lower_name in sorted(os.listdir(apps_path))
+    ]
+
+def read_config(dev_name):
+    return read_file(ROOT.devs[dev_name].config)
