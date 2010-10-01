@@ -324,6 +324,7 @@ class GitHandler(BaseHandler):
 
 class PublicHandler(BaseHandler):
     allowed_methods = ('GET', 'PUT')
+    access = AUTHENTICATED
 
     @_getting_app_path
     def get(self, request, app_name, app_path):
