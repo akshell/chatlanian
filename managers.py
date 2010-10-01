@@ -7,7 +7,8 @@ import socket
 
 from error import Error
 from utils import read_file, write_file, touch_file, get_id, execute_sql
-from paths import ANONYM_PREFIX, SAMPLE_NAME, SAMPLE_PATH, ROOT
+from paths import (
+    ANONYM_PREFIX, SAMPLE_NAME, SAMPLE_PATH, INITIAL_ENV_NAME, ROOT)
 
 from git import run_git
 
@@ -30,7 +31,7 @@ def create_app(dev_name, app_name):
     shutil.copytree(SAMPLE_PATH, app_path.code)
     os.mkdir(app_path.git)
     os.mkdir(app_path.envs)
-    write_file(app_path.envs['debug'], 'debug')
+    write_file(app_path.envs[INITIAL_ENV_NAME], INITIAL_ENV_NAME)
     write_file(app_path.domains, '[]')
     run_git(dev_name, app_name, 'init', '--quiet')
     run_git(dev_name, app_name, 'add', '.')

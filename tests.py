@@ -249,6 +249,8 @@ class AppTest(BaseTest):
             'apps/blog/envs/no-such', {'action': 'eval', 'expr': '1'},
             status=NOT_FOUND)
         self.post('apps/blog/envs/debug', {'action': 'bad'}, status=BAD_REQUEST)
+        self.client.logout()
+        self.get('apps/hello-world/envs/')
 
     def test_domains(self):
         path = 'apps/blog/domains'

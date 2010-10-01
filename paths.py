@@ -10,6 +10,7 @@ from utils import write_file, touch_file, SharedLock, ExclusiveLock
 ANONYM_PREFIX = 'anonym'
 ANONYM_NAME = ANONYM_PREFIX
 SAMPLE_NAME = 'hello-world'
+INITIAL_ENV_NAME = 'debug'
 CHATLANIAN_PATH = os.path.abspath(os.path.dirname(__file__))
 SAMPLE_PATH = CHATLANIAN_PATH + '/sample'
 CHATLANIAN_INIT_SQL_PATH = CHATLANIAN_PATH + '/init.sql'
@@ -115,6 +116,9 @@ def create_paths(use_test_db=False):
     write_file(app_path.name, SAMPLE_NAME)
     if not os.path.islink(app_path.code):
         os.symlink(SAMPLE_PATH, app_path.code)
+    if not os.path.isdir(app_path.envs):
+        os.mkdir(app_path.envs)
+        write_file(app_path.envs[INITIAL_ENV_NAME], INITIAL_ENV_NAME)
     write_file(ROOT.patsak_conf, '''\
 lib=%s/lib
 db=dbname=%s
