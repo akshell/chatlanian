@@ -294,8 +294,7 @@ class AppTest(BaseTest):
             path,
             {
                 'action': 'mv',
-                'srcPaths': ['a/b', 'main.js'],
-                'dstPath': 'static',
+                'pathPairs': [['a/b', 'static/b'], ['main.js', 'static/main.js']],
             })
         self.assertEqual(
             self.get(path),
@@ -309,14 +308,13 @@ class AppTest(BaseTest):
         self.post(
             path, {'action': 'mkdir', 'path': 'static'}, status=BAD_REQUEST)
         self.post(
-            path, {'action': 'mv', 'srcPaths': ['a'], 'dstPath': 'no/such'},
-            status=NOT_FOUND)
+            path, {'action': 'mv', 'pathPairs': [['a', 'no/such']]},
+            status=BAD_REQUEST)
         self.post(
             path,
             {
                 'action': 'mv',
-                'srcPaths': ['no/such', 'static/hello.txt'],
-                'dstPath': '',
+                'pathPairs': [['no/such', 'yo'], ['static/hello.txt', 'hello.txt']],
             },
             status=BAD_REQUEST)
         self.post(path, {'action': 'rm', 'paths': ['static']})

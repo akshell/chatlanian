@@ -212,9 +212,9 @@ def _traverse(path):
     return result
 
 
-def _check_path(path, can_be_empty=False):
+def _check_path(path):
     parts = [part for part in path.split('/') if part]
-    if '.' in parts or '..' in parts or not (parts or can_be_empty):
+    if not parts or '.' in parts or '..' in parts:
         raise Error('The path "%s" is incorrect.' % path, '''\
 Path must be non-empty and must not contain the "." and ".." components.''')
     return parts
@@ -254,18 +254,14 @@ class CodeHandler(BaseHandler):
                     if error.errno == errno.EISDIR:
                         shutil.rmtree(abs_path)
         elif action == 'mv':
-            src_paths = request.data['srcPaths']
-            dst_path = request.data['dstPath']
-            src_names = [_check_path(src_path)[-1] for src_path in src_paths]
-            _check_path(dst_path, True)
-            dst_prefix = prefix + dst_path + '/'
-            if not os.path.isdir(dst_prefix):
-                raise Error('The folder "%s" doesn\'t exist.' % dst_path,
-                            status=NOT_FOUND)
+            path_pairs = request.data['pathPairs']
             failed_paths = []
-            for src_path, src_name in zip(src_paths, src_names):
+            for path_pair in path_pairs:
+                src_path, dst_path = path_pair
+                _check_path(src_path)
+                _check_path(dst_path)
                 try:
-                    os.rename(prefix + src_path, dst_prefix + src_name)
+                    os.rename(prefix + src_path, prefix + dst_path)
                 except OSError:
                     failed_paths.append(src_path)
             if failed_paths:
