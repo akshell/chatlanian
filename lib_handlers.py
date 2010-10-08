@@ -20,7 +20,9 @@ def _get_libs_path(dev_name, owner_name):
         return owner_path.apps
     if not os.path.exists(owner_path):
         raise Error(
-            'The developer "%s" doesn\'t exist.' % owner_name, status=NOT_FOUND)
+            'The author "%s" doesn\'t exist.' % owner_name,
+            'Please correct the author name.',
+            status=NOT_FOUND)
     return owner_path.libs
 
 
@@ -42,6 +44,7 @@ def _get_repo(dev_name, owner_name, lib_name):
     except NotGitRepository:
         raise Error(
             'The library "%s/%s" doesn\'t exist.' % (owner_name, lib_name),
+            'Please correct the library name.',
             status=NOT_FOUND)
 
 
@@ -76,7 +79,10 @@ def _get_tree(repo, version):
             obj = repo.get_object(obj.object[1])
         if obj.type_name == 'commit':
             return repo.get_object(obj.tree)
-    raise Error('The version "%s" doesn\'t exist.' % version, status=NOT_FOUND)
+    raise Error(
+        'The version "%s" doesn\'t exist.' % version,
+        'Please correct the version.',
+        status=NOT_FOUND)
 
 
 def _traverse(repo, tree):
