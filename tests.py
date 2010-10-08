@@ -294,7 +294,8 @@ class AppTest(BaseTest):
             path,
             {
                 'action': 'mv',
-                'pathPairs': [['a/b', 'static/b'], ['main.js', 'static/main.js']],
+                'pathPairs':
+                    [['a/b', 'static/b'], ['main.js', 'static/main.js']],
             })
         self.assertEqual(
             self.get(path),
@@ -314,11 +315,24 @@ class AppTest(BaseTest):
             path,
             {
                 'action': 'mv',
-                'pathPairs': [['no/such', 'yo'], ['static/hello.txt', 'hello.txt']],
+                'pathPairs':
+                    [['no/such', 'yo'], ['static/hello.txt', 'hello.txt']],
             },
             status=BAD_REQUEST)
+        self.post(
+            path,
+            {
+                'action': 'cp',
+                'pathPairs': [['hello.txt', 'a/hi.txt'], ['static/b', 'b']],
+            })
+        self.post(
+            path,
+            {'action': 'cp', 'pathPairs': [['no/such', 'file']]},
+            status=BAD_REQUEST)
         self.post(path, {'action': 'rm', 'paths': ['static']})
-        self.assertEqual(self.get(path), {'a': {}, 'hello.txt': None})
+        self.assertEqual(
+            self.get(path),
+            {'a': {'hi.txt': None}, 'b': {'c': {}}, 'hello.txt': None})
         self.get(path + 'no/such', status=NOT_FOUND)
         self.put(path + 'no/such', '', status=NOT_FOUND)
         self.get(path + 'a', status=BAD_REQUEST)

@@ -220,6 +220,15 @@ Path must be non-empty and must not contain the "." and ".." components.''')
     return parts
 
 
+def _copy(src_path, dst_path):
+    try:
+        shutil.copyfile(src_path, dst_path)
+    except IOError, error:
+        if error.errno == errno.EISDIR:
+            shutil.copytree(src_path, dst_path)
+        else:
+            raise
+
 class CodeHandler(BaseHandler):
     allowed_methods = ('GET', 'POST')
 
@@ -253,20 +262,23 @@ class CodeHandler(BaseHandler):
                 except OSError, error:
                     if error.errno == errno.EISDIR:
                         shutil.rmtree(abs_path)
-        elif action == 'mv':
+        elif action in ('mv', 'cp'):
             path_pairs = request.data['pathPairs']
+            func = os.rename if action == 'mv' else _copy
             failed_paths = []
             for path_pair in path_pairs:
                 src_path, dst_path = path_pair
                 _check_path(src_path)
                 _check_path(dst_path)
                 try:
-                    os.rename(prefix + src_path, prefix + dst_path)
-                except OSError:
+                    func(prefix + src_path, prefix + dst_path)
+                except EnvironmentError:
                     failed_paths.append(src_path)
             if failed_paths:
-                raise Error('Failed to move the entries "%s".'
-                            % '", "'.join(failed_paths))
+                raise Error(
+                    'Failed to %s the entries "%s".'
+                    % ('move' if action == 'mv' else 'copy',
+                       '", "'.join(failed_paths)))
         else:
             raise Error('Unknown action: "%s"' % action)
         return HttpResponse()
