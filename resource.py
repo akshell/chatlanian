@@ -11,8 +11,6 @@ from managers import create_dev
 
 ANONYMOUS, GET_ANONYMOUS, HALF_ANONYMOUS, AUTHENTICATED = range(4)
 
-_CHARSET_SUFFIX = '; charset=utf-8'
-
 
 class Resource(PistonResource):
     callmap = {
@@ -25,11 +23,10 @@ class Resource(PistonResource):
     def __call__(self, request, *args, **kwargs):
         if request.method != 'GET' and not request.is_ajax():
             return HttpResponse('Non-AJAX request', status=FORBIDDEN)
-        if request.raw_post_data:
-            content_type = request.META.get('CONTENT_TYPE', '')
-            if content_type.lower().endswith(_CHARSET_SUFFIX):
-                request.META['CONTENT_TYPE'] = content_type[:-len(_CHARSET_SUFFIX)]
-        else:
+        content_type_lower = request.META.get('CONTENT_TYPE', '').lower()
+        if content_type_lower == 'application/json; charset=utf-8':
+            request.META['CONTENT_TYPE'] = 'application/json'
+        elif content_type_lower != 'application/json':
             request.META.pop('CONTENT_TYPE', None)
         request.is_anonymous = request.is_half_anonymous = False
         if request.user.is_authenticated():

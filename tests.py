@@ -77,6 +77,8 @@ class BaseTest(TestCase):
         return self.request('POST', path, data, content_type, status)
 
     def put(self, path, data='', content_type=None, status=OK):
+        if not content_type and isinstance(data, str):
+            content_type = 'text/plain'
         return self.request('PUT', path, data, content_type, status)
 
     def delete(self, path, status=OK):
