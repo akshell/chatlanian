@@ -220,7 +220,28 @@ Path must be non-empty and must not contain the "." and ".." components.''')
     return parts
 
 
-def _copy(src_path, dst_path):
+def _remove_entry(path):
+    try:
+        os.remove(path)
+    except OSError, error:
+        if error.errno == errno.EISDIR:
+            shutil.rmtree(path)
+
+
+def _check_entry_exists(path):
+    if not os.path.exists(path):
+        raise EnvironmentError()
+
+
+def _move_entry(src_path, dst_path):
+    _check_entry_exists(src_path)
+    _remove_entry(dst_path);
+    os.rename(src_path, dst_path);
+
+
+def _copy_entry(src_path, dst_path):
+    _check_entry_exists(src_path)
+    _remove_entry(dst_path)
     try:
         shutil.copyfile(src_path, dst_path)
     except IOError, error:
@@ -228,6 +249,7 @@ def _copy(src_path, dst_path):
             shutil.copytree(src_path, dst_path)
         else:
             raise
+
 
 class CodeHandler(BaseHandler):
     allowed_methods = ('GET', 'POST')
@@ -256,15 +278,10 @@ class CodeHandler(BaseHandler):
             for path in paths:
                 _check_path(path)
             for path in paths:
-                abs_path = prefix + path
-                try:
-                    os.remove(abs_path)
-                except OSError, error:
-                    if error.errno == errno.EISDIR:
-                        shutil.rmtree(abs_path)
+                _remove_entry(prefix + path)
         elif action in ('mv', 'cp'):
             path_pairs = request.data['pathPairs']
-            func = os.rename if action == 'mv' else _copy
+            func = _move_entry if action == 'mv' else _copy_entry
             failed_paths = []
             for path_pair in path_pairs:
                 src_path, dst_path = path_pair

@@ -329,7 +329,10 @@ class AppTest(BaseTest):
             })
         self.post(
             path,
-            {'action': 'cp', 'pathPairs': [['no/such', 'file']]},
+            {
+                'action': 'cp',
+                'pathPairs': [['no/such', 'a'], ['hello.txt', 'no/such']],
+            },
             status=BAD_REQUEST)
         self.post(path, {'action': 'rm', 'paths': ['static']})
         self.assertEqual(
