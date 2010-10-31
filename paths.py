@@ -125,7 +125,7 @@ db=dbname=%s
 ''' % (PATSAK_PATH,
        DATABASES['default']['TEST_NAME' if use_test_db else 'NAME']))
     write_file(ROOT.ecilop_conf, '''\
-socket=%s
+socket=%s:666
 data=%s
 locks=%s
 patsak=%s
