@@ -29,7 +29,6 @@ class IndexHandler(BaseHandler):
         return render_to_response(
             'index.html',
             {
-                'DEBUG': DEBUG,
                 'user': request.user,
                 'app_names': json.dumps(app_names),
                 'config': config,

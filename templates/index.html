@@ -14,12 +14,9 @@
             APP_NAMES = {{ app_names|safe }};
             CONFIG = {{ config|safe }};
             OBJJ_MAIN_FILE = "frontend/main.j";
-            {% if DEBUG %}
-              OBJJ_INCLUDE_PATHS = ["Frameworks/Debug", "Frameworks"];
-            {% endif %}
         </script>
 
-        <script src = "frontend/Frameworks/{% if DEBUG %}Debug/{% endif %}Objective-J/Objective-J.js" type = "text/javascript"></script>
+        <script src = "frontend/Frameworks/Objective-J/Objective-J.js" type = "text/javascript"></script>
 
         <style type = "text/css">
             body{margin:0; padding:0;}
