@@ -9,14 +9,14 @@ from auth_handlers import (
     SignupHandler, LoginHandler, LogoutHandler, PasswordHandler,
     password_reset_view)
 from dev_handlers import (
-    IndexHandler, ConfigHandler, RsaPubHandler, ContactHandler, AppsHandler)
+    IDEHandler, ConfigHandler, RsaPubHandler, ContactHandler, AppsHandler)
 
 
 admin.autodiscover()
 
 urlpatterns = patterns(
     '',
-    (r'^$', Resource(IndexHandler)),
+    (r'^ide/?$', Resource(IDEHandler)),
     (r'^admin/doc/', include('django.contrib.admindocs.urls')),
     (r'^admin/', include(admin.site.urls)),
     (r'^signup$', Resource(SignupHandler)),

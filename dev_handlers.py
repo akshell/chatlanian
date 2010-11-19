@@ -16,7 +16,7 @@ from managers import create_app, get_app_names, read_config
 from resource import HALF_ANONYMOUS
 
 
-class IndexHandler(BaseHandler):
+class IDEHandler(BaseHandler):
     allowed_methods = ('GET',)
 
     def get(self, request):
@@ -27,7 +27,7 @@ class IndexHandler(BaseHandler):
             app_names = get_app_names(request.dev_name)
             config = read_config(request.dev_name)
         return render_to_response(
-            'index.html',
+            'ide.html',
             {
                 'user': request.user,
                 'app_names': json.dumps(app_names),
