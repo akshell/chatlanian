@@ -368,3 +368,4 @@ class PublicHandler(BaseHandler):
                 os.remove(lib_path)
             except OSError, error:
                 assert error.errno == errno.ENOENT
+        return HttpResponse()
