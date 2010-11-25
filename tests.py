@@ -87,11 +87,11 @@ class BaseTest(TestCase):
 
 class BasicTest(BaseTest):
     def test_misc(self):
-        self.get('')
+        self.get('ide')
         self.assertEqual(self.client.post('/signup').status_code, FORBIDDEN)
         self.get('no/such/page', status=NOT_FOUND)
         self.get('rsa.pub')
-        self.get('')
+        self.get('ide')
         self.post('/contact', {'email': 'x@y.com  ', 'message': 'wuzzup'})
         self.assertEqual(_last_email_subject, 'From x@y.com')
         self.assertEqual(_last_email_message, 'wuzzup')
