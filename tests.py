@@ -106,6 +106,7 @@ class BasicTest(BaseTest):
             status=CREATED)
         self.put('/config', {'x': 42})
         self.post('/apps/', {'name': 'blog'}, status=CREATED)
+        self.put('/apps/blog/public', True)
         self.post(
             'signup',
             {'name': 'mary', 'email': 'mary@yyy.com', 'password': 'yyy'},
@@ -144,8 +145,10 @@ class BasicTest(BaseTest):
         self.assertEqual(
             self.post('login', {'name': 'bob', 'password': 'xxx'}),
             {
+                'username': 'bob',
                 'email': 'bob@xxx.com',
                 'appNames': ['blog', 'hello-world'],
+                'libNames': ['blog'],
                 'config': {'x': 42},
             })
         self.client.logout()

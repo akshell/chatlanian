@@ -82,12 +82,20 @@ def stop_patsaks(host_id):
     send_to_ecilop('STOP ' + host_id)
 
 
-def get_app_names(dev_name):
-    apps_path = ROOT.devs[dev_name].apps
+def _get_names(path):
     return [
-        read_file(apps_path[lower_name].name)
-        for lower_name in sorted(os.listdir(apps_path))
+        read_file(path[lower_name].name)
+        for lower_name in sorted(os.listdir(path))
     ]
+
+
+def get_app_names(dev_name):
+    return _get_names(ROOT.devs[dev_name].apps)
+
+
+def get_lib_names(dev_name):
+    return _get_names(ROOT.devs[dev_name].libs)
+
 
 def read_config(dev_name):
     return read_file(ROOT.devs[dev_name].config)
