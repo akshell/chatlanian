@@ -403,6 +403,8 @@ index 17bc8e5..0000000
         self.assertEqual(self.get('apps/blog/diff'), '')
         self.post('apps/blog/commit', {'message': 'Bad'}, status=BAD_REQUEST)
         self.post('apps/blog/commit', {'message': 'Fixed test', 'amend': True})
+        self.client.logout()
+        self.assertEqual(self.get('apps/hello-world/diff'), '')
 
     def test_public(self):
         self.assertEqual(self.get('apps/blog/public'), False)

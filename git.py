@@ -504,7 +504,7 @@ def _check_url(url):
             raise Error('Local URLs aren\'t supported.')
 
 
-def parse_git_command(user, string):
+def parse_git_command(string):
     command, _, tail = string.lstrip().partition(' ')
     if command == 'help':
         return command, tail.split()
@@ -520,14 +520,7 @@ def parse_git_command(user, string):
             pass
         args.append(arg)
     namespace = parser.parse_args(args)
-    if command == 'commit':
-        args = [
-            '--author',
-            ('%s <%s>' % (user.username, user.email)
-             if user.is_authenticated() else
-             'anonym'),
-        ] + args
-    elif command in ('push', 'pull', 'fetch'):
+    if command in ('push', 'pull', 'fetch'):
         for url in namespace.pos:
             _check_url(url)
     elif command == 'remote':
@@ -539,15 +532,29 @@ def parse_git_command(user, string):
     return command, args
 
 
-def run_git(dev_name, app_name, command, *args):
-    if command == 'help':
-        if args:
-            try:
-                return _parsers[args[0]].description
-            except KeyError:
-                raise Error('Command "%s" is not supported.' % args[0])
-        else:
-            return '''\
+class GitRunner(object):
+    def __init__(self, dev_name, app_name, author_name, author_email):
+        dev_path = ROOT.devs[dev_name]
+        app_path = dev_path.apps[app_name]
+        self._env = {
+            'GIT_WORK_TREE': app_path.code,
+            'GIT_DIR': app_path.git,
+            'GIT_SSH': dev_path.ssh,
+            'GIT_AUTHOR_NAME': author_name,
+            'GIT_AUTHOR_EMAIL': author_email,
+            'GIT_COMMITTER_NAME': author_name,
+            'GIT_COMMITTER_EMAIL': author_email,
+        }
+
+    def run(self, command, *args):
+        if command == 'help':
+            if args:
+                try:
+                    return _parsers[args[0]].description
+                except KeyError:
+                    raise Error('Command "%s" is not supported.' % args[0])
+            else:
+                return '''\
 The most commonly used git commands are:
    add        Add file contents to the index
    branch     List, create, or delete branches
@@ -570,16 +577,10 @@ The most commonly used git commands are:
 
 See 'help COMMAND' for more information on a specific command.
 '''
-    dev_path = ROOT.devs[dev_name]
-    app_path = dev_path.apps[app_name]
-    process = Popen(
-        ['/usr/bin/git', command] + list(args),
-        env={
-            'GIT_WORK_TREE': app_path.code,
-            'GIT_DIR': app_path.git,
-            'GIT_SSH': dev_path.ssh,
-        },
-        stdout=PIPE,
-        stderr=STDOUT)
-    process.wait()
-    return process.stdout.read()
+        process = Popen(
+            ['/usr/bin/git', command] + list(args),
+            env=self._env,
+            stdout=PIPE,
+            stderr=STDOUT)
+        process.wait()
+        return process.stdout.read()

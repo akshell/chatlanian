@@ -10,7 +10,7 @@ from utils import read_file, write_file, touch_file, get_id, execute_sql
 from paths import (
     ANONYM_PREFIX, SAMPLE_NAME, SAMPLE_PATH, INITIAL_ENV_NAME, ROOT)
 
-from git import run_git
+from git import GitRunner
 
 
 CREATE_SCHEMA_SQL = 'SELECT ak.create_schema(%s);'
@@ -33,13 +33,10 @@ def create_app(dev_name, app_name):
     os.mkdir(app_path.envs)
     write_file(app_path.envs[INITIAL_ENV_NAME], INITIAL_ENV_NAME)
     write_file(app_path.domains, '[]')
-    run_git(dev_name, app_name, 'init', '--quiet')
-    run_git(dev_name, app_name, 'add', '.')
-    run_git(
-        dev_name, app_name,
-        'commit', '--quiet',
-        '--author', 'akshell <akshell@akshell.com>',
-        '--message', 'Initial commit.')
+    git_runner = GitRunner(dev_name, app_name, 'akshell', 'akshell@akshell.com')
+    git_runner.run('init', '--quiet')
+    git_runner.run('add', '.')
+    git_runner.run('commit', '--quiet', '-m', 'Initial commit.')
 
 
 def create_dev(dev_name=None):

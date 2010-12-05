@@ -17,7 +17,7 @@ from error import Error
 from utils import check_name, read_file, write_file, get_id, execute_sql
 from paths import ROOT
 from managers import CREATE_SCHEMA_SQL, send_to_ecilop, stop_patsaks
-from git import parse_git_command, run_git
+from git import parse_git_command, GitRunner
 from resource import AUTHENTICATED
 
 
@@ -331,19 +331,24 @@ class FileHandler(BaseHandler):
         return HttpResponse()
 
 
+def _make_git_runner(request, app_name):
+    return GitRunner(
+        request.dev_name, app_name, request.user.username, request.user.email)
+
+
 class GitHandler(BaseHandler):
     allowed_methods = ('POST',)
 
     @_getting_app_path
     def post(self, request, app_name, app_path):
-        command, args = parse_git_command(request.user, request.data['command'])
+        command, args = parse_git_command(request.data['command'])
         host_id = get_id(request.dev_name, app_name)
         if command not in (
             'commit', 'merge', 'pull', 'rebase', 'reset', 'revert'):
             host_id += ':'
         stop_patsaks(host_id)
         return HttpResponse(
-            run_git(request.dev_name, app_name, command, *args),
+            _make_git_runner(request, app_name).run(command, *args),
             'text/plain; charset=utf-8')
 
 
@@ -352,11 +357,14 @@ class DiffHandler(BaseHandler):
 
     @_getting_app_path
     def get(self, request, app_name, app_path):
-        add_output = run_git(request.dev_name, app_name, 'add', '-Nv', '.')
-        diff = run_git(request.dev_name, app_name, 'diff')
+        if request.is_anonymous:
+            return HttpResponse('', 'text/plain; charset=utf-8')
+        git_runner = _make_git_runner(request, app_name)
+        add_output = git_runner.run('add', '-Nv', '.')
+        diff = git_runner.run('diff')
         added_paths = [line[5:-1] for line in add_output.splitlines()]
         if added_paths:
-            run_git(request.dev_name, app_name, 'reset', 'HEAD', *added_paths)
+            git_runner.run('reset', 'HEAD', *added_paths)
         return HttpResponse(diff, 'text/plain; charset=utf-8')
 
 
@@ -365,11 +373,12 @@ class CommitHandler(BaseHandler):
 
     @_getting_app_path
     def post(self, request, app_name, app_path):
-        run_git(request.dev_name, app_name, 'add', '-A')
+        git_runner = _make_git_runner(request, app_name)
+        git_runner.run('add', '-A')
         args = ['commit', '-qm', request.data['message']]
         if request.data.get('amend'):
             args.append('--amend')
-        output = run_git(request.dev_name, app_name, *args)
+        output = git_runner.run(*args)
         if output:
             raise Error(output)
         return HttpResponse()
