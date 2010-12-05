@@ -332,7 +332,7 @@ class FileHandler(BaseHandler):
 
 
 class GitHandler(BaseHandler):
-    allowed_methods = ('POST')
+    allowed_methods = ('POST',)
 
     @_getting_app_path
     def post(self, request, app_name, app_path):
@@ -345,6 +345,34 @@ class GitHandler(BaseHandler):
         return HttpResponse(
             run_git(request.dev_name, app_name, command, *args),
             'text/plain; charset=utf-8')
+
+
+class DiffHandler(BaseHandler):
+    allowed_methods = ('GET',)
+
+    @_getting_app_path
+    def get(self, request, app_name, app_path):
+        add_output = run_git(request.dev_name, app_name, 'add', '-Nv', '.')
+        diff = run_git(request.dev_name, app_name, 'diff')
+        added_paths = [line[5:-1] for line in add_output.splitlines()]
+        if added_paths:
+            run_git(request.dev_name, app_name, 'reset', 'HEAD', *added_paths)
+        return HttpResponse(diff, 'text/plain; charset=utf-8')
+
+
+class CommitHandler(BaseHandler):
+    allowed_methods = ('POST',)
+
+    @_getting_app_path
+    def post(self, request, app_name, app_path):
+        run_git(request.dev_name, app_name, 'add', '-A')
+        args = ['commit', '-qm', request.data['message']]
+        if request.data.get('amend'):
+            args.append('--amend')
+        output = run_git(request.dev_name, app_name, *args)
+        if output:
+            raise Error(output)
+        return HttpResponse()
 
 
 class PublicHandler(BaseHandler):

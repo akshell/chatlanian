@@ -372,6 +372,38 @@ class AppTest(BaseTest):
         run('tag -am hello')
         run('tag hi')
 
+    def test_diff_and_commit(self):
+        self.assertEqual(self.get('apps/blog/diff'), '')
+        self.post('apps/blog/code/', {'action': 'rm', 'paths': ['static']})
+        self.put('apps/blog/code/hello.txt', 'Hello world')
+        self.assertEqual(self.get('apps/blog/diff'), '''\
+diff --git a/hello.txt b/hello.txt
+index e69de29..70c379b 100644
+--- a/hello.txt
++++ b/hello.txt
+@@ -0,0 +1 @@
++Hello world
+\\ No newline at end of file
+diff --git a/static/base.css b/static/base.css
+deleted file mode 100644
+index 17bc8e5..0000000
+--- a/static/base.css
++++ /dev/null
+@@ -1,4 +0,0 @@
+-/*
+-  The base stylesheet of your application.
+-  It should define rules common for all pages.
+-*/
+''')
+        self.assertEqual(self.post('apps/blog/git', {'command': 'status -s'}), '''\
+ D static/base.css
+?? hello.txt
+''')
+        self.post('apps/blog/commit', {'message': 'Test'})
+        self.assertEqual(self.get('apps/blog/diff'), '')
+        self.post('apps/blog/commit', {'message': 'Bad'}, status=BAD_REQUEST)
+        self.post('apps/blog/commit', {'message': 'Fixed test', 'amend': True})
+
     def test_public(self):
         self.assertEqual(self.get('apps/blog/public'), False)
         self.put('apps/blog/public', True)

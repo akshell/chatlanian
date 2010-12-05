@@ -5,8 +5,8 @@ from django.conf.urls.defaults import *
 from utils import NAME_PATTERN
 from resource import Resource
 from app_handlers import (
-    AppHandler, EnvsHandler, EnvHandler, DomainsHandler,
-    CodeHandler, FileHandler, GitHandler, PublicHandler)
+    AppHandler, EnvsHandler, EnvHandler, DomainsHandler, CodeHandler,
+    FileHandler, GitHandler, DiffHandler, CommitHandler, PublicHandler)
 
 
 urlpatterns = patterns(
@@ -18,5 +18,7 @@ urlpatterns = patterns(
     (r'^code/$', Resource(CodeHandler)),
     (r'^code/(?P<path>.+)$', Resource(FileHandler)),
     (r'^git$', Resource(GitHandler)),
+    (r'^diff$', Resource(DiffHandler)),
+    (r'^commit$', Resource(CommitHandler)),
     (r'^public$', Resource(PublicHandler)),
 )

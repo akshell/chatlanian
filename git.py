@@ -412,16 +412,16 @@ usage: stash list [<options>]
     'status': _Parser('''\
 usage: status [options] [--] <filepattern>...
 
-    -q, --quiet           be quiet
     -v, --verbose         be verbose
+    -s, --short           show status concisely
 
     -a, --all             commit all changed files
     -i, --include         add specified files to index for commit
     -o, --only            commit only specified files
     --amend               amend previous commit
     --allow-empty         ok to record an empty change
-''')('-q', '--quiet',
-     '-v', '--verbose',
+''')('-v', '--verbose',
+     '-s', '--short',
      '-a', '--all',
      '-i', '--include',
      '-o', '--only',
