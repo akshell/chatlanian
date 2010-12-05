@@ -547,7 +547,7 @@ def run_git(dev_name, app_name, command, *args):
             except KeyError:
                 raise Error('Command "%s" is not supported.' % args[0])
         else:
-            return '''
+            return '''\
 The most commonly used git commands are:
    add        Add file contents to the index
    branch     List, create, or delete branches
