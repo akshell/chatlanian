@@ -377,15 +377,10 @@ class AppTest(BaseTest):
     def test_diff_and_commit(self):
         self.assertEqual(self.get('apps/blog/diff'), '')
         self.post('apps/blog/code/', {'action': 'rm', 'paths': ['static']})
-        self.put('apps/blog/code/hello.txt', 'Hello world')
+        self.put('apps/blog/code/" \'!.txt', 'Hello world')
+        self.put('apps/blog/code/empty', '')
+        self.put('apps/blog/code/binary', '\0')
         self.assertEqual(self.get('apps/blog/diff'), '''\
-diff --git a/hello.txt b/hello.txt
-index e69de29..70c379b 100644
---- a/hello.txt
-+++ b/hello.txt
-@@ -0,0 +1 @@
-+Hello world
-\\ No newline at end of file
 diff --git a/static/base.css b/static/base.css
 deleted file mode 100644
 index 17bc8e5..0000000
@@ -396,10 +391,19 @@ index 17bc8e5..0000000
 -  The base stylesheet of your application.
 -  It should define rules common for all pages.
 -*/
-''')
-        self.assertEqual(self.post('apps/blog/git', {'command': 'status -s'}), '''\
- D static/base.css
-?? hello.txt
+diff --git "a/\\" '!.txt" "b/\\" '!.txt"
+added new file
+--- /dev/null
++++ "b/\\" '!.txt"
++Hello world
+\\ No newline at end of file
+diff --git a/binary b/binary
+added new file
+--- /dev/null
++++ b/binary
+Binary files /dev/null and b/binary differ
+diff --git a/empty b/empty
+added new empty file
 ''')
         self.post('apps/blog/commit', {'message': 'Test'})
         self.assertEqual(self.get('apps/blog/diff'), '')

@@ -363,12 +363,31 @@ class DiffHandler(BaseHandler):
         if request.is_anonymous:
             return HttpResponse('', 'text/plain; charset=utf-8')
         git_runner = _make_git_runner(request, app_name)
-        add_output = git_runner.run('add', '-Nv', '.')
-        diff = git_runner.run('diff')
-        added_paths = [line[5:-1] for line in add_output.splitlines()]
-        if added_paths:
-            git_runner.run('reset', 'HEAD', *added_paths)
-        return HttpResponse(diff, 'text/plain; charset=utf-8')
+        parts = [git_runner.run('diff', 'HEAD')]
+        for status_line in git_runner.run(
+            'status', '--porcelain', '--untracked-files=all').splitlines():
+            if not status_line.startswith('?? '):
+                continue
+            escaped = status_line[3] == '"'
+            path = status_line[4:-1] if escaped else status_line[3:]
+            content = read_file(
+                app_path.code + '/' +
+                (path.decode('string_escape') if escaped else path))
+            a_path = '"a/%s"' % path if escaped else 'a/' + path
+            b_path = '"b/%s"' % path if escaped else 'b/' + path
+            parts.append('diff --git %s %s\n' % (a_path, b_path))
+            if content:
+                parts.append('added new file\n--- /dev/null\n+++ %s\n' % b_path)
+                if '\0' in content:
+                    parts.append(
+                        'Binary files /dev/null and %s differ\n' % b_path)
+                else:
+                    parts += ['+%s\n' % line for line in content.splitlines()]
+                    if content[-1] != '\n':
+                        parts.append('\\ No newline at end of file\n')
+            else:
+                parts.append('added new empty file\n')
+        return HttpResponse(''.join(parts), 'text/plain; charset=utf-8')
 
 
 class CommitHandler(BaseHandler):
