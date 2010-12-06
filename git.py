@@ -580,6 +580,7 @@ See 'help COMMAND' for more information on a specific command.
         process = Popen(
             ['/usr/bin/git', command] + list(args),
             env=self._env,
+            cwd=self._env['GIT_WORK_TREE'],
             stdout=PIPE,
             stderr=STDOUT)
         process.wait()
