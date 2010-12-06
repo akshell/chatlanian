@@ -21,7 +21,7 @@ for i in `seq $from $to`; do
     chown postgres $dir/tablespace
     echo -n {} > $dir/config
     ssh-keygen -q -N '' -C '' -f $dir/rsa
-    echo -e '#!/bin/bash\nexec /usr/bin/ssh -i "'$dir/rsa'" "$@"' > $dir/ssh
+    echo -e '#!/bin/bash\nexec /usr/bin/ssh -i "${0%/*}/rsa" "$@"' > $dir/ssh
     chown $user $dir/apps $dir/libs $dir/grantors $dir/config $dir/rsa $dir/rsa.pub $dir/ssh
     chmod u+x $dir/ssh
 done
