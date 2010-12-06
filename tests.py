@@ -371,6 +371,8 @@ class AppTest(BaseTest):
         run('tag -l')
         run('tag -am hello')
         run('tag hi')
+        self.client.logout()
+        self.post('apps/hello-world/git', {'command': 'status'})
 
     def test_diff_and_commit(self):
         self.assertEqual(self.get('apps/blog/diff'), '')

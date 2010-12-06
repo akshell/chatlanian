@@ -332,8 +332,11 @@ class FileHandler(BaseHandler):
 
 
 def _make_git_runner(request, app_name):
-    return GitRunner(
-        request.dev_name, app_name, request.user.username, request.user.email)
+    author_name, author_email = (
+        (request.user.username, request.user.email)
+        if request.user.is_authenticated() else
+        ('anonym', ''))
+    return GitRunner(request.dev_name, app_name, author_name, author_email)
 
 
 class GitHandler(BaseHandler):
