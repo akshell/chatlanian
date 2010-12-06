@@ -57,12 +57,14 @@ def create_dev(dev_name=None):
 
 def send_to_ecilop(header, body=None):
     assert len(header) < 128
+    padded_header = header + ' ' * (128 - len(header))
     sock = socket.socket(socket.AF_UNIX)
     sock.connect(ROOT.ecilop_socket)
-    sock.sendall(header + ' ' * (128 - len(header)) + (body or ''))
     if body is None:
+        sock.sendall(padded_header)
         sock.close()
         return
+    sock.sendall((padded_header + body).encode('utf-8'))
     sock.shutdown(socket.SHUT_WR)
     parts = []
     while True:
