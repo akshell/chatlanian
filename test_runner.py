@@ -8,6 +8,7 @@ import os
 from django.test.simple import DjangoTestSuiteRunner
 
 from utils import write_file
+import settings
 import paths
 
 
@@ -18,6 +19,7 @@ TEST_DRAFT_COUNT = 100
 class TestRunner(DjangoTestSuiteRunner):
     def setup_test_environment(self, **kwargs):
         DjangoTestSuiteRunner.setup_test_environment(self, **kwargs)
+        settings.ECILOP_PORT = paths.ECILOP_PORT = 9865
         paths.ROOT = paths.RootPath(TEST_ROOT_PATH)
         paths.create_paths(True)
         tablespace_paths = []

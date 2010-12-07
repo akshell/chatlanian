@@ -3,7 +3,7 @@
 import os.path
 import os
 
-from settings import DEBUG, DATABASES
+from settings import DEBUG, DATABASES, ECILOP_PORT
 from utils import write_file, touch_file, SharedLock, ExclusiveLock
 
 
@@ -86,7 +86,6 @@ class RootPath(str):
     drafts = _child('drafts', DraftsPath)
     tmp = _child('tmp', DirPath)
     trash = _child('trash', DirPath)
-    ecilop_socket = _child('ecilop.socket')
     data = _child('data')
     devs = _child('data/devs', DevsPath)
     domains = _child('data/domains', DirPath)
@@ -125,10 +124,9 @@ db=dbname=%s
 ''' % (PATSAK_PATH,
        DATABASES['default']['TEST_NAME' if use_test_db else 'NAME']))
     write_file(ROOT.ecilop_conf, '''\
-socket=%s:666
+port=%d
 data=%s
 locks=%s
 patsak=%s
 patsak-config=%s
-''' % (ROOT.ecilop_socket, ROOT.data, ROOT.locks,
-       PATSAK_EXE_PATH, ROOT.patsak_conf))
+''' % (ECILOP_PORT, ROOT.data, ROOT.locks, PATSAK_EXE_PATH, ROOT.patsak_conf))

@@ -5,6 +5,7 @@ import os.path
 import shutil
 import socket
 
+from settings import ECILOP_PORT
 from error import Error
 from utils import read_file, write_file, touch_file, get_id, execute_sql
 from paths import (
@@ -58,8 +59,8 @@ def create_dev(dev_name=None):
 def send_to_ecilop(header, body=None):
     assert len(header) < 128
     padded_header = header + ' ' * (128 - len(header))
-    sock = socket.socket(socket.AF_UNIX)
-    sock.connect(ROOT.ecilop_socket)
+    sock = socket.socket(socket.AF_INET)
+    sock.connect(('localhost', ECILOP_PORT))
     if body is None:
         sock.sendall(padded_header)
         sock.close()
