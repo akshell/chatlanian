@@ -13,6 +13,7 @@ from=$3
 to=$4
 
 for i in `seq $from $to`; do
+    echo $i
     dir=$base/$i
     mkdir $dir
     chown $user:$i $dir
