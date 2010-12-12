@@ -41,7 +41,7 @@ class BaseTest(TestCase):
         execute_sql('SELECT ak.drop_all_schemas()')
         for dev_name in os.listdir(ROOT.devs):
             if dev_name != ANONYM_NAME:
-                execute_sql('DROP TABLESPACE "%s"' % dev_name)
+                execute_sql('DROP TABLESPACE IF EXISTS "%s"' % dev_name)
         Popen('sudo rm -r %s %s' % (ROOT.devs, ROOT.trash), shell=True)
         shutil.rmtree(ROOT.locks)
         shutil.rmtree(ROOT.domains)

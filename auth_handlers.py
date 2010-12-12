@@ -27,6 +27,11 @@ from managers import (
 from resource import ANONYMOUS, AUTHENTICATED
 
 
+def _stop_dev_patsaks(dev_name):
+    for app_name in os.listdir(ROOT.devs[dev_name]):
+        stop_patsaks(get_id(dev_name, app_name))
+
+
 class SignupHandler(BaseHandler):
     allowed_methods = ('POST',)
     access = ANONYMOUS
@@ -60,20 +65,19 @@ class SignupHandler(BaseHandler):
             dev_name, email, request.data['password'])
         user.save()
         if request.is_half_anonymous:
+            _stop_dev_patsaks(request.dev_name)
             old_dev_path = ROOT.devs[request.dev_name]
-            for app_name in os.listdir(old_dev_path.apps):
-                stop_patsaks(get_id(request.dev_name, app_name))
             dev_path = ROOT.devs[dev_name]
             os.rename(old_dev_path, dev_path)
+            os.mkdir(old_dev_path)
+            os.symlink(dev_path.tablespace, old_dev_path.tablespace)
             os.rename(
                 dev_path.grantors[request.dev_name],
                 dev_path.grantors[dev_name])
             os.rename(ROOT.locks[request.dev_name], ROOT.locks[dev_name])
-            execute_sql('''\
-UPDATE pg_tablespace SET spclocation = %s, spcname = %s WHERE spcname = %s''',
-                        (dev_path.tablespace,
-                         dev_name.lower(),
-                         request.dev_name))
+            execute_sql(
+                'SELECT ak.rename_dev(%s, %s)',
+                (request.dev_name, dev_name.lower()))
         else:
             create_dev(dev_name)
         user.backend = AUTHENTICATION_BACKENDS[0]
@@ -92,6 +96,7 @@ class LoginHandler(BaseHandler):
         if not user or not user.is_active:
             raise Error('Incorrect user name or password.')
         if request.is_half_anonymous:
+            _stop_dev_patsaks(request.dev_name)
             execute_sql('SELECT ak.drop_schemas(%s)', (request.dev_name,))
             execute_sql('DROP TABLESPACE "%s"' % request.dev_name)
             os.rename(ROOT.devs[request.dev_name], ROOT.trash[request.dev_name])
