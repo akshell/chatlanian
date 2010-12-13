@@ -52,6 +52,10 @@ INSTALLED_APPS = (
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.admin',
+    'indexer',
+    'paging',
+    'sentry',
+    'sentry.client',
     'chatlanian',
 )
 
@@ -76,3 +80,5 @@ EMAIL_USE_TLS = True
 PASSWORD_RESET_TIMEOUT_DAYS = 2
 
 ECILOP_PORT = 9864
+
+PISTON_DISPLAY_ERRORS = False
