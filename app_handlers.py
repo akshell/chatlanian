@@ -395,6 +395,7 @@ class CommitHandler(BaseHandler):
 
     @_getting_app_path
     def post(self, request, app_name, app_path):
+        stop_patsaks(get_id(request.dev_name, app_name))
         git_runner = _make_git_runner(request, app_name)
         git_runner.run('add', '-A')
         args = ['commit', '-qm', request.data['message']]
