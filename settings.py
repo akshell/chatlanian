@@ -15,8 +15,8 @@ MANAGERS = ADMINS
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'chatlanian',
-        'TEST_NAME': 'test-chatlanian',
+        'NAME': 'akshell',
+        'TEST_NAME': 'test-akshell',
         'OPTIONS': {'autocommit': True},
     }
 }

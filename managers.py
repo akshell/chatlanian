@@ -60,7 +60,7 @@ def send_to_ecilop(header, body=None):
     assert len(header) < 128
     padded_header = header + ' ' * (128 - len(header))
     sock = socket.socket(socket.AF_INET)
-    sock.connect(('localhost', ECILOP_PORT))
+    sock.connect(('127.0.0.1', ECILOP_PORT))
     if body is None:
         sock.sendall(padded_header)
         sock.close()

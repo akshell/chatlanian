@@ -11,7 +11,7 @@ from django.core.mail import send_mail
 
 from settings import DEBUG, ADMINS
 from utils import read_file, write_file, check_name
-from paths import SAMPLE_NAME, ROOT
+from paths import SAMPLE_NAME, KAPPA_VERSION, ROOT
 from managers import create_app, get_app_names, get_lib_names, read_config
 from resource import HALF_ANONYMOUS
 
@@ -59,7 +59,13 @@ class IDEHandler(BaseHandler):
             'libNames': lib_names,
             'config': config,
         }
-        return render_to_response('ide.html', {'basis': json.dumps(basis)})
+        return render_to_response(
+            'ide.html',
+            {
+                'DEBUG': DEBUG,
+                'KAPPA_VERSION': KAPPA_VERSION,
+                'basis': json.dumps(basis),
+            })
 
 
 class ConfigHandler(BaseHandler):

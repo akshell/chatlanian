@@ -11,14 +11,24 @@ ANONYM_PREFIX = 'anonym'
 ANONYM_NAME = ANONYM_PREFIX
 SAMPLE_NAME = 'hello-world'
 INITIAL_ENV_NAME = 'debug'
+
 CHATLANIAN_PATH = os.path.abspath(os.path.dirname(__file__))
 SAMPLE_PATH = CHATLANIAN_PATH + '/sample'
-CHATLANIAN_INIT_SQL_PATH = CHATLANIAN_PATH + '/init.sql'
-PATSAK_PATH = os.path.dirname(CHATLANIAN_PATH) + '/patsak'
-PATSAK_INIT_SQL_PATH = PATSAK_PATH + '/init.sql'
-PATSAK_EXE_PATH = PATSAK_PATH + '/exe/common/patsak'
-ECILOP_PATH = os.path.dirname(CHATLANIAN_PATH) + '/ecilop'
-ECILOP_EXE_PATH = ECILOP_PATH + '/ecilop'
+CHATLANIAN_SQL_PATH = CHATLANIAN_PATH + '/chatlanian.sql'
+
+if DEBUG:
+    KAPPA_VERSION = 'curr'
+    PATSAK_PATH = os.path.dirname(CHATLANIAN_PATH) + '/patsak'
+    PATSAK_LIB_PATH = PATSAK_PATH + '/lib'
+    PATSAK_SQL_PATH = PATSAK_PATH + '/patsak.sql'
+    PATSAK_EXE_PATH = PATSAK_PATH + '/exe/common/patsak'
+    ECILOP_EXE_PATH = os.path.dirname(CHATLANIAN_PATH) + '/ecilop/ecilop'
+else:
+    KAPPA_VERSION = os.readlink('/akshell/static/kappa/curr')
+    PATSAK_LIB_PATH = '/akshell/lib'
+    PATSAK_SQL_PATH = '/akshell/etc/patsak.sql'
+    PATSAK_EXE_PATH = '/akshell/bin/patsak'
+    ECILOP_EXE_PATH = '/akshell/bin/ecilop'
 
 
 class DirPath(str):
@@ -93,8 +103,7 @@ class RootPath(str):
     ecilop_conf = _child('ecilop.conf')
 
 
-ROOT = RootPath(
-    os.path.abspath(os.path.dirname(__file__)) + '/root' if DEBUG else '/ak')
+ROOT = RootPath(CHATLANIAN_PATH + '/root' if DEBUG else '/akshell')
 
 
 def create_paths(use_test_db=False):
@@ -119,9 +128,9 @@ def create_paths(use_test_db=False):
         os.mkdir(app_path.envs)
         write_file(app_path.envs[INITIAL_ENV_NAME], INITIAL_ENV_NAME)
     write_file(ROOT.patsak_conf, '''\
-lib=%s/lib
+lib=%s
 db=dbname=%s
-''' % (PATSAK_PATH,
+''' % (PATSAK_LIB_PATH,
        DATABASES['default']['TEST_NAME' if use_test_db else 'NAME']))
     write_file(ROOT.ecilop_conf, '''\
 port=%d
