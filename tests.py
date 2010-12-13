@@ -242,9 +242,9 @@ class AppTest(BaseTest):
         rename('test', 'Debug', OK)
         self.assertEqual(self.get('apps/blog/envs/'), ['Debug'])
         response = self.post(
-            'apps/blog/envs/release', {'action': 'eval', 'expr': '1'})
+            'apps/blog/envs/release', {'action': 'eval', 'expr': 'throw 1'})
         self.assert_(not response['ok'])
-        self.assert_(response['result'].startswith('RequireError:'))
+        self.assert_(response['result'].startswith('Uncaught 1'))
         self.put('apps/blog/code/main.js', 'x = 42')
         response = self.post(
             'apps/blog/envs/debug', {'action': 'eval', 'expr': 'x'})
