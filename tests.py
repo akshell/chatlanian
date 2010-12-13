@@ -1,7 +1,9 @@
 # (c) 2010 by Anton Korenyushkin
 
 from httplib import (
-    OK, CREATED, FOUND, BAD_REQUEST, UNAUTHORIZED, FORBIDDEN, NOT_FOUND)
+    OK, CREATED,
+    MOVED_PERMANENTLY, FOUND,
+    BAD_REQUEST, UNAUTHORIZED, FORBIDDEN, NOT_FOUND)
 from subprocess import Popen
 from urlparse import urlparse
 import urllib
@@ -87,11 +89,12 @@ class BaseTest(TestCase):
 
 class BasicTest(BaseTest):
     def test_misc(self):
-        self.get('ide')
+        self.get('ide', status=MOVED_PERMANENTLY)
+        self.get('ide/')
         self.assertEqual(self.client.post('/signup').status_code, FORBIDDEN)
         self.get('no/such/page', status=NOT_FOUND)
         self.get('rsa.pub')
-        self.get('ide')
+        self.get('ide/')
         self.post('/contact', {'email': 'x@y.com  ', 'message': 'wuzzup'})
         self.assertEqual(_last_email_subject, 'From x@y.com')
         self.assertEqual(_last_email_message, 'wuzzup')

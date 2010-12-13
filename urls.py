@@ -19,7 +19,7 @@ urlpatterns = patterns(
     (r'^admin/doc/', include('django.contrib.admindocs.urls')),
     (r'^admin/', include(admin.site.urls)),
     (r'^sentry/', include('sentry.urls')),
-    (r'^ide/?$', Resource(IDEHandler)),
+    (r'^ide/$', Resource(IDEHandler)),
     (r'^signup$', Resource(SignupHandler)),
     (r'^login$', Resource(LoginHandler)),
     (r'^logout$', Resource(LogoutHandler)),
