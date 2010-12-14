@@ -35,7 +35,7 @@ class TestRunner(DjangoTestSuiteRunner):
         Popen(['sudo', 'chown', 'postgres'] + tablespace_paths).wait()
         os.symlink('0', paths.ROOT.drafts.curr)
         self._ecilop_process = Popen(
-            [paths.ECILOP_EXE_PATH, '--config', paths.ROOT.ecilop_conf],
+            [paths.ECILOP_EXE_PATH, '--config', paths.ROOT.etc.ecilop_conf],
             stdout=PIPE)
         self._ecilop_process.stdout.readline()
         self._ecilop_process.stdout.readline()

@@ -91,6 +91,11 @@ class DraftsPath(DirPath):
     next = _child('next', DevPath)
 
 
+class EtcPath(str):
+    patsak_conf = _child('patsak.conf')
+    ecilop_conf = _child('ecilop.conf')
+
+
 class RootPath(str):
     locks = _child('locks', LocksPath)
     drafts = _child('drafts', DraftsPath)
@@ -99,8 +104,7 @@ class RootPath(str):
     data = _child('data')
     devs = _child('data/devs', DevsPath)
     domains = _child('data/domains', DirPath)
-    patsak_conf = _child('patsak.conf')
-    ecilop_conf = _child('ecilop.conf')
+    etc = _child('etc', EtcPath)
 
 
 ROOT = RootPath(CHATLANIAN_PATH + '/root' if DEBUG else '/akshell')
@@ -115,6 +119,7 @@ def create_paths(use_test_db=False):
         ROOT.tmp,
         ROOT.trash,
         ROOT.domains,
+        ROOT.etc,
         app_path,
     ):
         if not os.path.isdir(path):
@@ -127,15 +132,16 @@ def create_paths(use_test_db=False):
     if not os.path.isdir(app_path.envs):
         os.mkdir(app_path.envs)
         write_file(app_path.envs[INITIAL_ENV_NAME], INITIAL_ENV_NAME)
-    write_file(ROOT.patsak_conf, '''\
+    write_file(ROOT.etc.patsak_conf, '''\
 lib=%s
 db=dbname=%s
 ''' % (PATSAK_LIB_PATH,
        DATABASES['default']['TEST_NAME' if use_test_db else 'NAME']))
-    write_file(ROOT.ecilop_conf, '''\
+    write_file(ROOT.etc.ecilop_conf, '''\
 port=%d
 data=%s
 locks=%s
 patsak=%s
 patsak-config=%s
-''' % (ECILOP_PORT, ROOT.data, ROOT.locks, PATSAK_EXE_PATH, ROOT.patsak_conf))
+''' % (ECILOP_PORT, ROOT.data, ROOT.locks, PATSAK_EXE_PATH,
+       ROOT.etc.patsak_conf))
