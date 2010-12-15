@@ -105,6 +105,7 @@ class RootPath(str):
     devs = _child('data/devs', DevsPath)
     domains = _child('data/domains', DirPath)
     etc = _child('etc', EtcPath)
+    log = _child('log')
 
 
 ROOT = RootPath(CHATLANIAN_PATH + '/root' if DEBUG else '/akshell')
@@ -143,5 +144,6 @@ data=%s
 locks=%s
 patsak=%s
 patsak-config=%s
+log=%s
 ''' % (ECILOP_PORT, ROOT.data, ROOT.locks, PATSAK_EXE_PATH,
-       ROOT.etc.patsak_conf))
+       ROOT.etc.patsak_conf, ROOT.log))
