@@ -11,6 +11,7 @@ from auth_handlers import (
 from dev_handlers import (
     IDEHandler, ConfigHandler, RsaPubHandler, ContactHandler, AppsHandler)
 from dev_handlers import alpha_login_view
+from views import pingdom_view
 
 
 admin.autodiscover()
@@ -34,4 +35,5 @@ urlpatterns = patterns(
     (r'^apps/(?P<app_name>%s)/' % NAME_PATTERN, include('chatlanian.app_urls')),
     (r'^libs/(?P<owner_name>%s)/' % NAME_PATTERN,
      include('chatlanian.lib_urls')),
+    (r'^pingdom/$', pingdom_view),
 )

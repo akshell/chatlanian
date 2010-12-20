@@ -3,7 +3,8 @@
 from httplib import (
     OK, CREATED,
     MOVED_PERMANENTLY, FOUND,
-    BAD_REQUEST, UNAUTHORIZED, FORBIDDEN, NOT_FOUND)
+    BAD_REQUEST, UNAUTHORIZED, FORBIDDEN, NOT_FOUND,
+    INTERNAL_SERVER_ERROR)
 from subprocess import Popen
 from urlparse import urlparse
 import urllib
@@ -14,9 +15,10 @@ import simplejson as json
 from django.test import TestCase
 from django.test.client import Client, FakePayload
 from django.db import connection
+from sentry.models import GroupedMessage
 
 from paths import ANONYM_NAME, ROOT, create_paths
-from utils import execute_sql
+from utils import execute_sql, write_file
 import auth_handlers
 import dev_handlers
 
@@ -179,6 +181,15 @@ class BasicTest(BaseTest):
         self.get(path)
         self.post(path, 'new=yyy', status=FOUND)
         self.post('login', {'name': 'bob', 'password': 'yyy'})
+
+    def test_pingdom(self):
+        self.get('pingdom/')
+        GroupedMessage.objects.create(message='error')
+        self.assertEqual(
+            self.get('pingdom/', status=INTERNAL_SERVER_ERROR), 'chatlanian')
+        write_file(ROOT.log, 'error')
+        self.assertEqual(
+            self.get('pingdom/', status=INTERNAL_SERVER_ERROR), 'patsak')
 
 
 class DevTest(BaseTest):
