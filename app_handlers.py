@@ -33,6 +33,17 @@ def _getting_app_path(func):
     return result
 
 
+def _purge_domains(domains):
+    if DEBUG:
+        return
+    sock = socket.socket(socket.AF_INET)
+    sock.connect(('127.0.0.1', VARNISH_PORT))
+    sock.sendall(
+        'PURGE / HTTP/1.1\r\nHost: "(?i)(%s)$"\r\n\r\n' % '|'.join(domains))
+    sock.recv(8192)
+    sock.close()
+
+
 class AppHandler(BaseHandler):
     allowed_methods = ('DELETE')
 
@@ -40,7 +51,9 @@ class AppHandler(BaseHandler):
     def delete(self, request, app_name, app_path):
         app_id = get_id(request.dev_name, app_name)
         stop_patsaks(app_id)
-        for domain in json.loads(read_file(app_path.domains).lower()):
+        domains = json.loads(read_file(app_path.domains).lower())
+        _purge_domains(domains)
+        for domain in domains:
             os.remove(ROOT.domains[domain])
         tmp_app_path = ROOT.tmp[app_id]
         os.rename(app_path, tmp_app_path)
@@ -198,8 +211,10 @@ it must not start or end with a hyphen.''')
             stop_patsaks(app_id)
             for new_domain_lower in new_domains_lower.difference(domains_lower):
                 write_file(ROOT.domains[new_domain_lower], app_id)
-            for old_domain_lower in domains_lower.difference(new_domains_lower):
+            old_domains_lower = domains_lower.difference(new_domains_lower)
+            for old_domain_lower in old_domains_lower:
                 os.remove(ROOT.domains[old_domain_lower])
+        _purge_domains(old_domains_lower)
         write_file(app_path.domains, json.dumps(new_domains))
         return HttpResponse()
 
@@ -340,18 +355,6 @@ def _make_git_runner(request, app_name):
     return GitRunner(request.dev_name, app_name, author_name, author_email)
 
 
-def _purge_app_cache(app_path):
-    if DEBUG:
-        return
-    sock = socket.socket(socket.AF_INET)
-    sock.connect(('127.0.0.1', VARNISH_PORT))
-    domains = json.loads(read_file(app_path.domains).lower())
-    sock.sendall(
-        'PURGE / HTTP/1.1\r\nHost: "(?i)(%s)$"\r\n\r\n' % '|'.join(domains))
-    sock.recv(8192)
-    sock.close()
-
-
 class GitHandler(BaseHandler):
     allowed_methods = ('POST',)
 
@@ -360,7 +363,7 @@ class GitHandler(BaseHandler):
         command, args = parse_git_command(request.data['command'])
         host_id = get_id(request.dev_name, app_name)
         if command in ('commit', 'merge', 'pull', 'rebase', 'reset', 'revert'):
-            _purge_app_cache(app_path)
+            _purge_domains(json.loads(read_file(app_path.domains)))
         else:
             host_id += ':'
         stop_patsaks(host_id)
@@ -409,7 +412,7 @@ class CommitHandler(BaseHandler):
 
     @_getting_app_path
     def post(self, request, app_name, app_path):
-        _purge_app_cache(app_path)
+        _purge_domains(json.loads(read_file(app_path.domains)))
         stop_patsaks(get_id(request.dev_name, app_name))
         git_runner = _make_git_runner(request, app_name)
         git_runner.run('add', '-A')
