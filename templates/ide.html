@@ -20,7 +20,7 @@
             OBJJ_PROGRESS_CALLBACK = function (fraction) {
               if (!progressBarPill)
                   progressBarPill = document.getElementById("progressBarPill");
-              var percent = fraction * 100;
+              var percent = fraction * 350;
               if (percent > 5)
                   progressBarPill.style.width = percent + "%";
             };
