@@ -177,6 +177,6 @@ def password_reset_view(request, uidb36, token):
                 user.save()
                 user.backend = AUTHENTICATION_BACKENDS[0]
                 auth.login(request, user)
-                return HttpResponseRedirect('/')
+                return HttpResponseRedirect('/ide/')
     return HttpResponse(
         get_template('bad_reset.html').render(Context()), status=NOT_FOUND)
