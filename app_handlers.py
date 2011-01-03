@@ -1,4 +1,4 @@
-# (c) 2010 by Anton Korenyushkin
+# (c) 2010-2011 by Anton Korenyushkin
 
 from __future__ import with_statement
 from httplib import CREATED, NOT_FOUND

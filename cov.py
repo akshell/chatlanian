@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-# (c) 2010 by Anton Korenyushkin
+# (c) 2010-2011 by Anton Korenyushkin
 
 # pylint: disable-msg=W0404
 

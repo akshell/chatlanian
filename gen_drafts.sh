@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# (c) 2010 by Anton Korenyushkin
+# (c) 2010-2011 by Anton Korenyushkin
 
 if [[ $# < 4 ]]; then
     echo Usage: $0 user path from to

@@ -1,4 +1,4 @@
-# (c) 2010 by Anton Korenyushkin
+# (c) 2010-2011 by Anton Korenyushkin
 
 from django.db import connection
 from django.db.models.signals import post_syncdb
