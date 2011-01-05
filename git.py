@@ -472,7 +472,9 @@ def _add_diff_args(parser):
         '-R',
         '-b', '--ignore-space-change',
         '-w', '--ignore-all-space',
-        '--no-prefix')
+        '--no-prefix',
+        '--cached',
+        '--staged')
     parser(
         '-U', '--unified',
         '--diff-filter',
