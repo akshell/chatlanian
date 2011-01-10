@@ -255,11 +255,12 @@ class AppTest(BaseTest):
         rename('no-such', 'xxx', NOT_FOUND)
         rename('test', 'Debug', OK)
         self.assertEqual(self.get('apps/blog/envs/'), ['Debug'])
+        self.put('apps/blog/code/main.js', 'x = 42')
+        self.post('apps/blog/commit', {'message': '42'})
         response = self.post(
             'apps/blog/envs/release', {'action': 'eval', 'expr': 'throw 1'})
         self.assert_(not response['ok'])
         self.assert_(response['result'].startswith('Uncaught 1'))
-        self.put('apps/blog/code/main.js', 'x = 42')
         response = self.post(
             'apps/blog/envs/debug', {'action': 'eval', 'expr': 'x'})
         self.assert_(response['ok'])
@@ -298,12 +299,18 @@ class AppTest(BaseTest):
                 },
                 'static': {'base.css': None},
                 'main.js': None,
+                'manifest.json': None,
             })
         self.post(
             path,
             {
                 'action': 'rm',
-                'paths': ['templates', '/static//base.css', 'no/such'],
+                'paths': [
+                    'templates',
+                    '/static//base.css',
+                    'no/such',
+                    'manifest.json',
+                ],
             })
         self.assertEqual(self.get(path), {'static': {}, 'main.js': None})
         self.put(path + 'static/hello.txt', 'Hello world')
@@ -470,6 +477,7 @@ class LibTest(BaseTest):
                 'static': {'base.css': None},
                 'hello.txt': None,
                 'main.js': None,
+                'manifest.json': None,
             })
         self.get('libs/bob/lib/no-such-version/', status=NOT_FOUND)
         self.assertEqual(
