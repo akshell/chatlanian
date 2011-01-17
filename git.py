@@ -156,7 +156,7 @@ Commit contents options
      '--amend',
      '--allow-empty')
     ('-m', '--message', nargs=1, required=True)
-    ('-C', '--reuse-message', nargs=1),
+    ('-C', '--reuse-message', '--author', nargs=1),
 
     'describe': _Parser('''\
 usage: describe [options] <committish>*
