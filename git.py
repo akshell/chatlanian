@@ -154,7 +154,8 @@ Commit contents options
      '-i', '--include',
      '-o', '--only',
      '--amend',
-     '--allow-empty')
+     '--allow-empty',
+     '--reset-author')
     ('-m', '--message', nargs=1, required=True)
     ('-C', '--reuse-message', '--author', nargs=1),
 

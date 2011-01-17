@@ -418,7 +418,7 @@ class CommitHandler(BaseHandler):
         git_runner.run('add', '-A')
         args = ['commit', '-qm', request.data['message']]
         if request.data.get('amend'):
-            args.append('--amend')
+            args += ('--amend', '--reset-author')
         output = git_runner.run(*args)
         if output:
             raise Error(output)
