@@ -295,7 +295,7 @@ class AppTest(BaseTest):
                 'templates': {
                     'index.html': None,
                     'base.html': None,
-                    'error.html': None,
+                    'failure.html': None,
                 },
                 'static': {'base.css': None},
                 'main.js': None,
@@ -472,7 +472,7 @@ class LibTest(BaseTest):
                 'templates': {
                     'index.html': None,
                     'base.html': None,
-                    'error.html': None,
+                    'failure.html': None,
                 },
                 'static': {'base.css': None},
                 'hello.txt': None,
