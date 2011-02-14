@@ -12,7 +12,7 @@ import socket
 import simplejson as json
 from piston.handler import BaseHandler
 from piston.utils import require_mime
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseRedirect
 
 from settings import DEBUG, VARNISH_PORT
 from error import Error
@@ -20,7 +20,7 @@ from utils import check_name, read_file, write_file, get_id, execute_sql
 from paths import ROOT
 from managers import CREATE_SCHEMA_SQL, send_to_ecilop, stop_patsaks
 from git import parse_git_command, GitRunner
-from resource import AUTHENTICATED
+from resource import HALF_ANONYMOUS, AUTHENTICATED
 
 
 def _getting_app_path(func):
@@ -108,7 +108,13 @@ def _get_existent_env_path(app_path, env_name):
 
 
 class EnvHandler(BaseHandler):
-    allowed_methods = ('POST', 'DELETE')
+    allowed_methods = ('GET', 'POST', 'DELETE')
+    access = HALF_ANONYMOUS
+
+    def get(self, request, app_name, env_name):
+        return HttpResponseRedirect(
+            'http://%s.%s.%s.dev.%s'
+            % (env_name, app_name, request.dev_name, request.get_host()[4:]))
 
     @_getting_app_path
     def post(self, request, app_name, env_name, app_path):

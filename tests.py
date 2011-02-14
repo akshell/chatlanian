@@ -271,6 +271,12 @@ class AppTest(BaseTest):
         self.post('apps/blog/envs/debug', {'action': 'bad'}, status=BAD_REQUEST)
         self.client.logout()
         self.get('apps/hello-world/envs/')
+        response = self.client.get(
+            '/apps/hello-world/envs/debug', HTTP_HOST='www.akshell.com')
+        self.assertEqual(response.status_code, FOUND)
+        self.assertEqual(
+            response['Location'],
+            'http://debug.hello-world.anonym5.dev.akshell.com')
 
     def test_domains(self):
         path = 'apps/blog/domains'
