@@ -16,33 +16,10 @@ from managers import create_app, get_app_names, get_lib_names, read_config
 from resource import HALF_ANONYMOUS
 
 
-from django.http import HttpResponseRedirect
-from django.contrib import auth
-
-def alpha_login_view(request):
-    if request.method == 'GET':
-        return HttpResponse('''
-<html><body><form method="post" action=".">
-Name: <input type="text" name="name"><br>
-Password: <input type="password" name="password"><br>
-<input type="submit" value="Login">
-</form></body></html>
-''')
-    user = auth.authenticate(
-        username=request.POST['name'].replace(' ', '-'),
-        password=request.POST['password'])
-    if not user or not user.is_active:
-        return HttpResponse('Bad username or password.', status=400)
-    auth.login(request, user)
-    return HttpResponseRedirect('/ide/')
-
-
 class IDEHandler(BaseHandler):
     allowed_methods = ('GET',)
 
     def get(self, request):
-        if not request.user.is_authenticated() and not ROOT.startswith('/tmp/'):
-            return HttpResponseRedirect('/alpha-login/')
         if request.is_anonymous:
             app_names = [SAMPLE_NAME]
             lib_names = []

@@ -10,7 +10,6 @@ from auth_handlers import (
     password_reset_view)
 from dev_handlers import (
     IDEHandler, ConfigHandler, RsaPubHandler, ContactHandler, AppsHandler)
-from dev_handlers import alpha_login_view
 from views import pingdom_view
 
 
@@ -21,7 +20,6 @@ urlpatterns = patterns(
     (r'^admin/doc/', include('django.contrib.admindocs.urls')),
     (r'^admin/', include(admin.site.urls)),
     (r'^sentry/', include('sentry.urls')),
-    (r'^alpha-login/$', alpha_login_view),
     (r'^ide/$', Resource(IDEHandler)),
     (r'^signup$', Resource(SignupHandler)),
     (r'^login$', Resource(LoginHandler)),
