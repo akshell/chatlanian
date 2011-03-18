@@ -42,6 +42,7 @@ class IDEHandler(BaseHandler):
                 'DEBUG': DEBUG,
                 'KAPPA_VERSION': KAPPA_VERSION,
                 'basis': json.dumps(basis),
+                'user': request.user,
             })
 
 
