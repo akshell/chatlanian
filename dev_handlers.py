@@ -77,7 +77,7 @@ class ContactHandler(BaseHandler):
             'From ' + (request.data['email'].strip() or 'anonym'),
             request.data['message'],
             None,
-            (ADMINS[0][1],))
+            ('main@akshell.flowdock.com',))
         return HttpResponse()
 
 
