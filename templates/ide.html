@@ -168,6 +168,8 @@
                   email: '{{ user.email }}',
                 }
               };
+            {% else %}
+              var clicky_custom = {};
             {% endif %}
             clicky.init(204510);
           } catch(err) {}
