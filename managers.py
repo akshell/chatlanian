@@ -1,5 +1,6 @@
 # (c) 2010-2011 by Anton Korenyushkin
 
+from __future__ import with_statement
 import os
 import os.path
 import shutil
@@ -41,8 +42,9 @@ def create_app(dev_name, app_name):
 
 
 def create_dev(dev_name=None):
-    draft_name = os.readlink(ROOT.drafts.curr)
-    os.symlink(str(int(draft_name) + 1), ROOT.drafts.next)
+    with ROOT.locks.drafts.acquire_exclusive():
+        draft_name = os.readlink(ROOT.drafts.curr)
+        os.symlink(str(int(draft_name) + 1), ROOT.drafts.next)
     os.rename(ROOT.drafts.next, ROOT.drafts.curr)
     dev_name = dev_name or ANONYM_PREFIX + draft_name
     dev_path = ROOT.devs[dev_name]

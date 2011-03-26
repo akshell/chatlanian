@@ -57,6 +57,7 @@ class LockPath(str):
 class LocksPath(DirPath):
     child_class = LockPath
     domains = _child('!domains', LockPath)
+    drafts = _child('!drafts', LockPath)
 
 
 class AppPath(str):
@@ -126,6 +127,7 @@ def create_paths(use_test_db=False):
         if not os.path.isdir(path):
             os.makedirs(path)
     touch_file(ROOT.locks.domains)
+    touch_file(ROOT.locks.drafts)
     write_file(dev_path.config, '{}')
     write_file(app_path.name, SAMPLE_NAME)
     if not os.path.islink(app_path.code):
