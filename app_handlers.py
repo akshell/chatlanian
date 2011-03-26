@@ -55,6 +55,10 @@ class AppHandler(BaseHandler):
         _purge_domains(domains)
         for domain in domains:
             os.remove(ROOT.domains[domain])
+        try:
+            os.remove(ROOT.devs[request.dev_name].libs[app_name])
+        except OSError, error:
+            assert error.errno == errno.ENOENT
         tmp_app_path = ROOT.tmp[app_id]
         os.rename(app_path, tmp_app_path)
         shutil.rmtree(tmp_app_path)
