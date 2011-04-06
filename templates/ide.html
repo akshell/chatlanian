@@ -55,7 +55,7 @@
             #alert {
                 font-family: Helvetica, Arial, sans-serif;
                 font-size: 14px;
-                width: 505px;
+                width: 520px;
                 padding: 10px 20px 10px 20px;
                 background-color: white;
                 position: relative;
@@ -117,26 +117,35 @@
             <div id="container">
                 {% if not DEBUG %}
                     <script type="text/javascript">
-                        document.write(
-                            !window.navigator || !navigator.userAgent ||
-                            (navigator.userAgent.indexOf("AppleWebKit/") == -1 && navigator.userAgent.indexOf("Firefox") == -1)
-                            ? "<div id='alert'>" +
+                        function loadIDE() {
+                            var alertDiv = document.getElementById('alert');
+                            if (alertDiv)
+                                alertDiv.parentNode.removeChild(alertDiv);
+                            document.write(
+                                "<img id='logo' src='Resources/Logo90.png'>" +
+                                "<div id='progressBar'>" +
+                                "<span id='progressBarPill'>" +
+                                "<span id='left'></span><span id='center'></span><span id='right'></span>" +
+                                "</span>" +
+                                "</div>" +
+                                "<script src='Application.js' type='text/javascript'><" + "/script>");
+                        }
+                        if (window.navigator && navigator.userAgent &&
+                            (navigator.userAgent.indexOf("AppleWebKit/") != -1 || navigator.userAgent.indexOf("Firefox") != -1))
+                            loadIDE();
+                        else
+                            document.write(
+                              "<div id='alert'>" +
                               "<img id='error' src='Resources/Error48.png'>" +
                               "<p id='message'>Your browser isn't supported.</p>" +
                               "<p>" +
                               "Use the latest version of " +
                               "<a href='http://www.apple.com/safari/download/'>Safari</a>, " +
                               "<a href='http://www.google.com/chrome/'>Chrome</a>, or " +
-                              "<a href='http://www.mozilla.com/en-US/firefox/'>Firefox</a> to access Akshell." +
+                              "<a href='http://www.mozilla.com/en-US/firefox/'>Firefox</a> or " +
+                              "<a href='javascript:loadIDE()'>continue anyway</a>." +
                               "</p>" +
-                              "</div>"
-                            : "<img id='logo' src='Resources/Logo90.png'>" +
-                              "<div id='progressBar'>" +
-                              "<span id='progressBarPill'>" +
-                              "<span id='left'></span><span id='center'></span><span id='right'></span>" +
-                              "</span>" +
-                              "</div>" +
-                              "<script src='Application.js' type='text/javascript'><" + "/script>");
+                              "</div>");
                     </script>
                 {% endif %}
 
