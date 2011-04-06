@@ -117,25 +117,27 @@
             <div id="container">
                 {% if not DEBUG %}
                     <script type="text/javascript">
+                        var progressHTML =
+                            "<img id='logo' src='Resources/Logo90.png'>" +
+                            "<div id='progressBar'>" +
+                            "<span id='progressBarPill'>" +
+                            "<span id='left'></span><span id='center'></span><span id='right'></span>" +
+                            "</span>" +
+                            "</div>";
                         function loadIDE() {
-                            var alertDiv = document.getElementById('alert');
-                            if (alertDiv)
-                                alertDiv.parentNode.removeChild(alertDiv);
-                            document.write(
-                                "<img id='logo' src='Resources/Logo90.png'>" +
-                                "<div id='progressBar'>" +
-                                "<span id='progressBarPill'>" +
-                                "<span id='left'></span><span id='center'></span><span id='right'></span>" +
-                                "</span>" +
-                                "</div>" +
-                                "<script src='Application.js' type='text/javascript'><" + "/script>");
+                            var containerDiv = document.getElementById('container');
+                            containerDiv.innerHTML = progressHTML;
+                            var appScript = document.createElement('script');
+                            appScript.type = "text/javascript";
+                            appScript.src = "Application.js";
+                            containerDiv.appendChild(appScript);
                         }
-                        if (window.navigator && navigator.userAgent &&
-                            (navigator.userAgent.indexOf("AppleWebKit/") != -1 || navigator.userAgent.indexOf("Firefox") != -1))
-                            loadIDE();
-                        else
-                            document.write(
-                              "<div id='alert'>" +
+                        document.write(
+                            window.navigator && navigator.userAgent &&
+                            (navigator.userAgent.indexOf("AppleWebKit/") != -1 || navigator.userAgent.indexOf("Firefox") != -1)
+                            ? progressHTML +
+                              "<script src='Application.js' type='text/javascript'><" + "/script>"
+                            : "<div id='alert'>" +
                               "<img id='error' src='Resources/Error48.png'>" +
                               "<p id='message'>Your browser isn't supported.</p>" +
                               "<p>" +
