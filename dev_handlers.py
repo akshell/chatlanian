@@ -20,6 +20,14 @@ class IDEHandler(BaseHandler):
     allowed_methods = ('GET',)
 
     def get(self, request):
+        return render_to_response(
+            'ide.html', {'DEBUG': DEBUG, 'KAPPA_VERSION': KAPPA_VERSION})
+
+
+class BasisJSHandler(BaseHandler):
+    allowed_methods = ('GET',)
+
+    def get(self, request):
         if request.is_anonymous:
             app_names = [SAMPLE_NAME]
             lib_names = []
@@ -36,14 +44,7 @@ class IDEHandler(BaseHandler):
             'libNames': lib_names,
             'config': config,
         }
-        return render_to_response(
-            'ide.html',
-            {
-                'DEBUG': DEBUG,
-                'KAPPA_VERSION': KAPPA_VERSION,
-                'basis': json.dumps(basis),
-                'user': request.user,
-            })
+        return HttpResponse('BASIS = ' + json.dumps(basis), 'text/javascript')
 
 
 class ConfigHandler(BaseHandler):

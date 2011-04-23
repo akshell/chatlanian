@@ -9,7 +9,8 @@ from auth_handlers import (
     SignupHandler, LoginHandler, LogoutHandler, PasswordHandler,
     password_reset_view)
 from dev_handlers import (
-    IDEHandler, ConfigHandler, RsaPubHandler, ContactHandler, AppsHandler)
+    IDEHandler, BasisJSHandler, ConfigHandler, RsaPubHandler, ContactHandler,
+    AppsHandler)
 from views import pingdom_view
 
 
@@ -21,6 +22,7 @@ urlpatterns = patterns(
     (r'^admin/', include(admin.site.urls)),
     (r'^sentry/', include('sentry.urls')),
     (r'^ide/$', Resource(IDEHandler)),
+    (r'^basis\.js$', Resource(BasisJSHandler)),
     (r'^signup$', Resource(SignupHandler)),
     (r'^login$', Resource(LoginHandler)),
     (r'^logout$', Resource(LogoutHandler)),

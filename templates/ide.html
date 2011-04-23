@@ -5,9 +5,10 @@
 
         <link rel="shortcut icon" href="/_static/favicon.ico">
 
+        <script src="/basis.js" type="text/javascript"></script>
+
         <script type="text/javascript">
             document.write("<base href='http://" + location.host + "/kappa/{{ KAPPA_VERSION }}/'>");
-            BASIS = {{ basis|safe }};
             OBJJ_MAIN_FILE = "main.j";
             {% if not DEBUG %}
               OBJJ_AUTO_BOOTSTRAP = false;
