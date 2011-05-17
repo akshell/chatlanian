@@ -5,12 +5,12 @@ from django.contrib import admin
 
 from utils import NAME_PATTERN
 from resource import Resource
+from handlers import IDEHandler, ContactHandler
 from auth_handlers import (
     SignupHandler, LoginHandler, LogoutHandler, PasswordHandler,
     password_reset_view)
 from dev_handlers import (
-    IDEHandler, BasisJSHandler, ConfigHandler, RsaPubHandler, ContactHandler,
-    AppsHandler)
+    BasisJSHandler, ConfigHandler, RsaPubHandler, AppsHandler)
 from views import pingdom_view
 
 

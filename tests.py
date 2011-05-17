@@ -19,8 +19,8 @@ from sentry.models import GroupedMessage
 
 from paths import ANONYM_NAME, ROOT, create_paths
 from utils import execute_sql, write_file
+import handlers
 import auth_handlers
-import dev_handlers
 
 
 _last_email_subject = None
@@ -31,7 +31,7 @@ def _send_mail(subject, message, from_email, recipient_list):
     _last_email_subject = subject
     _last_email_message = message
 
-auth_handlers.send_mail = dev_handlers.send_mail = _send_mail
+handlers.send_mail = auth_handlers.send_mail = _send_mail
 
 
 

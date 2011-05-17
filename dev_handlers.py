@@ -6,22 +6,11 @@ import simplejson as json
 from piston.handler import BaseHandler
 from piston.utils import require_mime
 from django.http import HttpResponse
-from django.shortcuts import render_to_response
-from django.core.mail import send_mail
 
-from settings import DEBUG, ADMINS
 from utils import read_file, write_file, check_name
-from paths import SAMPLE_NAME, KAPPA_VERSION, ROOT
+from paths import SAMPLE_NAME, ROOT
 from managers import create_app, get_app_names, get_lib_names, read_config
 from resource import HALF_ANONYMOUS
-
-
-class IDEHandler(BaseHandler):
-    allowed_methods = ('GET',)
-
-    def get(self, request):
-        return render_to_response(
-            'ide.html', {'DEBUG': DEBUG, 'KAPPA_VERSION': KAPPA_VERSION})
 
 
 class BasisJSHandler(BaseHandler):
@@ -68,18 +57,6 @@ class RsaPubHandler(BaseHandler):
         return HttpResponse(
             read_file(ROOT.devs[request.dev_name].rsa_pub),
             'text/plain; charset=utf-8')
-
-
-class ContactHandler(BaseHandler):
-    allowed_methods = ('POST',)
-
-    def post(self, request):
-        send_mail(
-            'From ' + (request.data['email'].strip() or 'anonym'),
-            request.data['message'],
-            None,
-            ('info@akshell.com', 'main@akshell.flowdock.com',))
-        return HttpResponse()
 
 
 class AppsHandler(BaseHandler):
