@@ -586,5 +586,4 @@ See 'help COMMAND' for more information on a specific command.
             cwd=self._env['GIT_WORK_TREE'],
             stdout=PIPE,
             stderr=STDOUT)
-        process.wait()
-        return process.stdout.read()
+        return process.communicate()[0]
