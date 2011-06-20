@@ -5,6 +5,7 @@ import os
 import os.path
 import shutil
 import socket
+from subprocess import Popen, PIPE
 
 from settings import ECILOP_PORT
 from error import Error
@@ -60,6 +61,12 @@ def create_dev(dev_name=None):
 
 def send_to_ecilop(header, body=None):
     assert len(header) < 128
+    if header == 'STOP burjuy:kupishoes':
+        return ''
+    elif header == 'EVAL burjuy:kupishoes':
+        process = Popen(
+            ['/akshell/bin/patsak-kupishoes', 'eval', body], stdout=PIPE)
+        return process.communicate()[0]
     padded_header = header + ' ' * (128 - len(header))
     sock = socket.socket(socket.AF_INET)
     sock.connect(('127.0.0.1', ECILOP_PORT))
