@@ -62,7 +62,7 @@ def create_dev(dev_name=None):
 def send_to_ecilop(header, body=None):
     assert len(header) < 128
     if header == 'STOP burjuy:kupishoes':
-        Popen(['killall', 'patsak']).wait()
+        Popen(['killall', 'patsak-link']).wait()
         return ''
     elif header == 'EVAL burjuy:kupishoes':
         process = Popen(
